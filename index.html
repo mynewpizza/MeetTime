@@ -494,7 +494,7 @@ $('toggle-overlay').onchange = renderGrid;
 
 /* ---------- Auswertung ---------- */
 function renderConsole() {
-    const ev = room.events[currentEventId], total = Object.keys(room.users).length;
+    const ev = room.events[currentEventId], total = 5;
     const empty = t => $('console-results').innerHTML = `<p class="text-slate-500 italic col-span-full text-xs">${t}</p>`;
     if (!ev) return empty('');
     if (!total) return empty('Noch keine Teilnehmer eingetragen.');
