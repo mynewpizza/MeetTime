@@ -4,3874 +4,849 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terminfinder Pro - Firebase Edition</title>
-
     <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #090d16;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-
-        .excel-grid {
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-
-        .excel-cell {
-            user-select: none;
-            -webkit-user-select: none;
-            transition: all 0.08s ease-in-out;
-            border-right: 1px solid #1e293b;
-            border-bottom: 1px solid #1e293b;
-            position: relative;
-        }
-
-        .excel-cell:hover {
-            outline: 2px solid #10b981;
-            outline-offset: -2px;
-            z-index: 20;
-        }
-
-        .excel-cell.selected-focus {
-            outline: 2px solid #3b82f6;
-            outline-offset: -2px;
-            z-index: 21;
-        }
-
-        .excel-header-cell {
-            background: #1e293b;
-            border-right: 1px solid #334155;
-            border-bottom: 1px solid #334155;
-        }
-
-        .user-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            border: 1px solid rgba(0,0,0,0.5);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.6);
-        }
-
-        .perfect-match-glow {
-            box-shadow:
-                inset 0 0 12px rgba(16, 185, 129, 0.6),
-                0 0 10px rgba(16, 185, 129, 0.3);
-
-            border: 1px solid #10b981 !important;
-        }
-
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-
-        .firebase-status-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: #64748b;
-            transition: background 0.2s ease;
-        }
-
-        .firebase-status-dot.connected {
-            background: #10b981;
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
-        }
-
-        .firebase-status-dot.error {
-            background: #ef4444;
-            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
-        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #090d16; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .excel-grid { border-collapse: separate; border-spacing: 0; }
+        .excel-cell { user-select: none; -webkit-user-select: none; transition: all 0.08s ease-in-out; border-right: 1px solid #1e293b; border-bottom: 1px solid #1e293b; position: relative; }
+        .excel-cell:hover { outline: 2px solid #10b981; outline-offset: -2px; z-index: 20; }
+        .perfect-match-glow { box-shadow: inset 0 0 12px rgba(16, 185, 129, 0.6), 0 0 10px rgba(16, 185, 129, 0.3); border: 1px solid #10b981 !important; }
+        .glass-panel { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .firebase-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #64748b; transition: background 0.2s ease; }
+        .firebase-status-dot.connected { background: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.6); }
+        .firebase-status-dot.error { background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
     </style>
 </head>
-
 <body class="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col font-sans antialiased overflow-x-hidden selection:bg-emerald-500 selection:text-slate-950">
 
-    <!-- =========================================================
-         TUTORIAL MODAL
-    ========================================================== -->
-
-    <div id="modal-tutorial"
-         class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-
+    <!-- TUTORIAL MODAL -->
+    <div id="modal-tutorial" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
         <div class="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-lg">
-
             <div class="flex items-center justify-between mb-4">
-
                 <div class="flex items-center gap-2 text-emerald-400 font-bold text-lg">
-                    <span class="text-xl">💡</span>
-                    <h2>Excel Terminfinder Kurzanleitung</h2>
+                    <span>💡</span><h2>Terminfinder Kurzanleitung</h2>
                 </div>
-
-                <button id="btn-close-tutorial"
-                        class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
-                    ✕
-                </button>
-
+                <button id="btn-close-tutorial" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">✕</button>
             </div>
-
             <div class="space-y-4 text-sm text-slate-300">
-
                 <div class="flex gap-3 items-start bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-                    <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
-                        1
-                    </div>
-
-                    <div>
-                        <p class="font-semibold text-white">Mehrere Profile verwalten</p>
-                        <p class="text-xs text-slate-400 mt-0.5">
-                            Erstelle individuelle Profile und wechsle jederzeit zwischen ihnen.
-                        </p>
-                    </div>
+                    <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">1</div>
+                    <div><p class="font-semibold text-white">Profile verwalten</p><p class="text-xs text-slate-400 mt-0.5">Erstelle individuelle Profile und wechsle zwischen ihnen.</p></div>
                 </div>
-
                 <div class="flex gap-3 items-start bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-                    <div class="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">
-                        2
-                    </div>
-
-                    <div>
-                        <p class="font-semibold text-white">Events erstellen & bearbeiten</p>
-                        <p class="text-xs text-slate-400 mt-0.5">
-                            Erstelle Kalender-Tabellen oder passe Name & Zeitraum bestehender Events nachträglich an.
-                        </p>
-                    </div>
+                    <div class="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">2</div>
+                    <div><p class="font-semibold text-white">Events & Live-Heatmap</p><p class="text-xs text-slate-400 mt-0.5">Markiere Zeiten im Grid. Änderungen werden sofort über Firebase synchronisiert.</p></div>
                 </div>
-
-                <div class="flex gap-3 items-start bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-                    <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0">
-                        3
-                    </div>
-
-                    <div>
-                        <p class="font-semibold text-white">Excel-Grid & Heatmap</p>
-                        <p class="text-xs text-slate-400 mt-0.5">
-                            Ziehe mit der Maus über die 24h-Zellen. Aktiviere das Heatmap-Overlay für beste Überschneidungen!
-                        </p>
-                    </div>
-                </div>
-
-                <div class="flex gap-3 items-start bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-                    <div class="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs shrink-0">
-                        4
-                    </div>
-
-                    <div>
-                        <p class="font-semibold text-white">Echtzeit-Synchronisierung</p>
-                        <p class="text-xs text-slate-400 mt-0.5">
-                            Änderungen werden über Firebase automatisch mit allen geöffneten Geräten synchronisiert.
-                        </p>
-                    </div>
-                </div>
-
             </div>
-
             <div class="mt-6 text-right">
-
-                <button id="btn-tutorial-ok"
-                        class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-emerald-600/20">
-                    Verstanden & Starten
-                </button>
-
+                <button id="btn-tutorial-ok" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-emerald-600/20">Verstanden & Starten</button>
             </div>
-
         </div>
     </div>
 
-
-    <!-- =========================================================
-         PROFILE MODAL
-    ========================================================== -->
-
-    <div id="modal-profile"
-         class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-
+    <!-- PROFILE MODAL -->
+    <div id="modal-profile" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl w-full max-w-md">
-
             <div class="flex justify-between items-center mb-4">
-
-                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
-                    <span>👤</span>
-                    Profile verwalten
-                </h2>
-
-                <button id="btn-close-profile-modal"
-                        class="text-slate-400 hover:text-white p-1">
-                    ✕
-                </button>
-
+                <h2 class="text-2xl font-bold text-white flex items-center gap-2"><span>👤</span>Profile verwalten</h2>
+                <button id="btn-close-profile-modal" class="text-slate-400 hover:text-white p-1">✕</button>
             </div>
-
-
             <div class="mb-6">
-
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                    Gespeicherte Profile
-                </label>
-
-                <div id="profiles-list"
-                     class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                </div>
-
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Gespeicherte Profile</label>
+                <div id="profiles-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
             </div>
-
-
             <hr class="border-slate-800 my-4">
-
-
             <div class="space-y-4">
-
-                <h3 id="profile-form-title"
-                    class="text-sm font-bold text-slate-200">
-                    Neues Profil anlegen
-                </h3>
-
-                <input type="hidden"
-                       id="editing-profile-id"
-                       value="">
-
-
+                <h3 id="profile-form-title" class="text-sm font-bold text-slate-200">Neues Profil anlegen</h3>
+                <input type="hidden" id="editing-profile-id" value="">
                 <div>
-
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                        Name / Bezeichnung
-                    </label>
-
-                    <input type="text"
-                           id="profile-name"
-                           placeholder="z. B. Alex (Privat) oder Team Lead"
-                           class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 text-sm transition">
-
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Name / Bezeichnung</label>
+                    <input type="text" id="profile-name" placeholder="z. B. Alex (Handy) oder Alex (PC)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 text-sm transition">
                 </div>
-
-
                 <div>
-
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                        Profilfarbe wählen
-                    </label>
-
-                    <div id="color-picker"
-                         class="grid grid-cols-6 gap-2">
-                    </div>
-
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Profilfarbe wählen</label>
+                    <div id="color-picker" class="grid grid-cols-6 gap-2"></div>
                 </div>
-
             </div>
-
-
             <div class="mt-6 flex justify-end gap-3">
-
-                <button id="btn-cancel-profile-edit"
-                        class="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-sm transition hidden">
-                    Abbrechen
-                </button>
-
-                <button id="btn-save-profile"
-                        class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-sm rounded-xl shadow-lg shadow-emerald-600/20 transition">
-                    Profil speichern
-                </button>
-
+                <button id="btn-cancel-profile-edit" class="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-sm transition hidden">Abbrechen</button>
+                <button id="btn-save-profile" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-sm rounded-xl shadow-lg shadow-emerald-600/20 transition">Profil speichern</button>
             </div>
-
         </div>
     </div>
 
-
-    <!-- =========================================================
-         EVENT MODAL
-    ========================================================== -->
-
-    <div id="modal-event"
-         class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-
+    <!-- EVENT MODAL -->
+    <div id="modal-event" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl w-full max-w-md">
-
             <div class="flex justify-between items-center mb-1">
-
-                <h2 id="event-modal-title"
-                    class="text-2xl font-bold text-white">
-                    Neues Event anlegen
-                </h2>
-
-                <button id="btn-close-event-modal"
-                        class="text-slate-400 hover:text-white p-1">
-                    ✕
-                </button>
-
+                <h2 id="event-modal-title" class="text-2xl font-bold text-white">Neues Event anlegen</h2>
+                <button id="btn-close-event-modal" class="text-slate-400 hover:text-white p-1">✕</button>
             </div>
-
-            <p id="event-modal-subtitle"
-               class="text-sm text-slate-400 mb-6">
-                Bestimme Name und Zeitraum im Kalender.
-            </p>
-
-
-            <input type="hidden"
-                   id="editing-event-id"
-                   value="">
-
-
+            <p id="event-modal-subtitle" class="text-sm text-slate-400 mb-6">Bestimme Name und Zeitraum im Kalender.</p>
+            <input type="hidden" id="editing-event-id" value="">
             <div class="space-y-4">
-
                 <div>
-
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                        Event Name
-                    </label>
-
-                    <input type="text"
-                           id="event-name"
-                           placeholder="z. B. Sommerurlaub, Strategie-Meeting..."
-                           class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition text-sm">
-
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Event Name</label>
+                    <input type="text" id="event-name" placeholder="z. B. Team Meeting" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition text-sm">
                 </div>
-
-
                 <div class="grid grid-cols-2 gap-3">
-
                     <div>
-
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                            Startdatum
-                        </label>
-
-                        <input type="date"
-                               id="event-start"
-                               class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm transition">
-
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Startdatum</label>
+                        <input type="date" id="event-start" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm transition">
                     </div>
-
-
                     <div>
-
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                            Enddatum
-                        </label>
-
-                        <input type="date"
-                               id="event-end"
-                               class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm transition">
-
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Enddatum</label>
+                        <input type="date" id="event-end" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm transition">
                     </div>
-
                 </div>
-
             </div>
-
-
             <div class="mt-8 flex items-center justify-between">
-
-                <button id="btn-delete-event"
-                        class="px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-xl text-xs font-semibold transition hidden">
-                    🗑️ Event löschen
-                </button>
-
-
+                <button id="btn-delete-event" class="px-4 py-2 bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 rounded-xl text-xs font-semibold transition hidden">🗑️ Event löschen</button>
                 <div class="flex gap-3 ml-auto">
-
-                    <button id="btn-cancel-event"
-                            class="px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 text-sm transition">
-                        Abbrechen
-                    </button>
-
-                    <button id="btn-save-event"
-                            class="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-sm rounded-xl shadow-lg shadow-emerald-600/20 transition">
-                        Speichern
-                    </button>
-
+                    <button id="btn-cancel-event" class="px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 text-sm transition">Abbrechen</button>
+                    <button id="btn-save-event" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-sm rounded-xl shadow-lg shadow-emerald-600/20 transition">Speichern</button>
                 </div>
-
             </div>
-
         </div>
     </div>
 
-
-    <!-- =========================================================
-         HEADER
-    ========================================================== -->
-
+    <!-- HEADER -->
     <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-30">
-
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-
             <div class="flex items-center gap-3">
-
-                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/30 text-emerald-400 font-bold">
-                    📊
-                </div>
-
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/30 text-emerald-400 font-bold">📊</div>
                 <div>
-
-                    <h1 class="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-                        Terminfinder
-                    </h1>
-
+                    <h1 class="text-lg font-bold text-white tracking-tight">Terminfinder</h1>
                     <div class="flex items-center gap-1.5 text-[9px] text-slate-500">
-
-                        <span id="firebase-status-dot"
-                              class="firebase-status-dot"></span>
-
-                        <span id="firebase-status-text">
-                            Verbinde...
-                        </span>
-
+                        <span id="firebase-status-dot" class="firebase-status-dot"></span>
+                        <span id="firebase-status-text">Verbinde...</span>
                     </div>
-
                 </div>
-
             </div>
-
-
             <div class="flex items-center gap-2 sm:gap-3">
-
-                <button id="btn-open-tutorial"
-                        class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1.5 text-slate-300"
-                        title="Anleitung anzeigen">
-
-                    <span>💡</span>
-                    <span class="hidden sm:inline">Hilfe</span>
-
+                <button id="btn-open-tutorial" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1.5 text-slate-300"><span>💡</span><span class="hidden sm:inline">Hilfe</span></button>
+                <button id="btn-copy-link" class="text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1.5 text-slate-200"><span class="text-emerald-400">🔗</span><span class="hidden sm:inline">Link teilen</span></button>
+                <button id="btn-manage-profiles" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 transition">
+                    <div id="header-user-color" class="w-3.5 h-3.5 rounded-full border border-slate-500 shadow-sm"></div>
+                    <span id="header-user-name" class="text-xs sm:text-sm font-semibold text-white">Profil</span>
+                    <span class="text-[10px] text-slate-400">▼</span>
                 </button>
-
-
-                <button id="btn-copy-link"
-                        class="text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1.5 text-slate-200">
-
-                    <span class="text-emerald-400">🔗</span>
-                    <span class="hidden sm:inline">Link teilen</span>
-
-                </button>
-
-
-                <button id="btn-manage-profiles"
-                        class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 transition">
-
-                    <div id="header-user-color"
-                         class="w-3.5 h-3.5 rounded-full border border-slate-500 shadow-sm">
-                    </div>
-
-                    <span id="header-user-name"
-                          class="text-xs sm:text-sm font-semibold text-white">
-                        Profil
-                    </span>
-
-                    <span class="text-[10px] text-slate-400">
-                        ▼
-                    </span>
-
-                </button>
-
             </div>
-
         </div>
-
     </header>
 
-
-    <!-- =========================================================
-         MAIN
-    ========================================================== -->
-
+    <!-- MAIN -->
     <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-5 flex flex-col gap-4">
-
-
-        <!-- EVENT TOOLBAR -->
-
+        <!-- TOOLBAR -->
         <div class="glass-panel p-3 rounded-2xl border border-slate-800 shadow-xl flex flex-col gap-3">
-
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-
                 <div class="flex-1 flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-
-                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1 shrink-0">
-                        Tabellen:
-                    </span>
-
-                    <div id="event-tabs"
-                         class="flex items-center gap-1.5">
-                    </div>
-
+                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1 shrink-0">Tabellen:</span>
+                    <div id="event-tabs" class="flex items-center gap-1.5"></div>
                 </div>
-
-
                 <div class="flex items-center gap-2 shrink-0">
-
-                    <button id="btn-edit-current-event"
-                            class="hidden items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition">
-
-                        ✏️ Event bearbeiten
-
-                    </button>
-
-
-                    <button id="btn-new-event"
-                            class="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 text-xs sm:text-sm font-bold rounded-xl transition shadow-lg shadow-emerald-600/20">
-
-                        <span>+</span>
-                        Neues Event
-
-                    </button>
-
+                    <button id="btn-edit-current-event" class="hidden items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition">✏️ Event bearbeiten</button>
+                    <button id="btn-new-event" class="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 text-xs sm:text-sm font-bold rounded-xl transition shadow-lg shadow-emerald-600/20"><span>+</span>Neues Event</button>
                 </div>
-
             </div>
-
-
             <!-- OVERLAY CONTROL -->
-
             <div class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 flex items-center justify-end">
-
                 <label class="flex items-center cursor-pointer gap-2 text-xs font-semibold text-slate-300">
-
                     <div class="relative">
-
-                        <input type="checkbox"
-                               id="toggle-overlay"
-                               class="sr-only">
-
-                        <div class="block bg-slate-800 w-8 h-4 rounded-full transition border border-slate-700"
-                             id="toggle-bg">
-                        </div>
-
-                        <div class="dot absolute left-0.5 top-0.5 bg-white w-3 h-3 rounded-full transition transform"
-                             id="toggle-dot">
-                        </div>
-
+                        <input type="checkbox" id="toggle-overlay" class="sr-only">
+                        <div class="block bg-slate-800 w-8 h-4 rounded-full transition border border-slate-700" id="toggle-bg"></div>
+                        <div class="dot absolute left-0.5 top-0.5 bg-white w-3 h-3 rounded-full transition transform" id="toggle-dot"></div>
                     </div>
-
-                    <span class="flex items-center gap-1">
-                        Überschneidungen (Heatmap)
-                    </span>
-
+                    <span>Überschneidungen (Heatmap)</span>
                 </label>
-
             </div>
-
         </div>
 
-
-        <!-- =====================================================
-             GRID
-        ====================================================== -->
-
+        <!-- GRID CONTAINER -->
         <div class="flex-1 bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden relative min-h-[480px] flex flex-col">
-
-
-            <!-- EMPTY STATE -->
-
-            <div id="grid-empty-state"
-                 class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/95 z-20 p-6 text-center">
-
-                <span class="text-5xl mb-4">
-                    📊
-                </span>
-
-                <h3 class="text-xl font-bold text-white mb-2">
-                    Kein Event ausgewählt
-                </h3>
-
-                <p class="text-slate-400 text-sm mb-6 max-w-sm">
-                    Erstelle eine neue Event-Tabelle mit Start- und Enddatum, um Termine einzutragen.
-                </p>
-
-                <button id="btn-empty-create"
-                        class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-slate-950 font-bold text-sm transition shadow-lg shadow-emerald-600/20">
-
-                    + Neues Event erstellen
-
-                </button>
-
+            <div id="grid-empty-state" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/95 z-20 p-6 text-center">
+                <span class="text-5xl mb-4">📊</span>
+                <h3 class="text-xl font-bold text-white mb-2">Kein Event ausgewählt</h3>
+                <p class="text-slate-400 text-sm mb-6 max-w-sm">Erstelle eine neue Event-Tabelle mit Start- und Enddatum, um Termine einzutragen.</p>
+                <button id="btn-empty-create" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-slate-950 font-bold text-sm transition shadow-lg shadow-emerald-600/20">+ Neues Event erstellen</button>
             </div>
-
-
-            <!-- GRID -->
-
-            <div class="overflow-x-auto flex-1 p-3 hidden custom-scrollbar"
-                 id="grid-container-wrapper">
-
-                <div id="calendar-container"
-                     class="min-w-max border border-slate-800 rounded-lg overflow-hidden excel-grid bg-slate-950">
-
-                    <div id="calendar-header"
-                         class="grid text-center font-bold text-xs select-none bg-slate-900 border-b border-slate-800">
-                    </div>
-
-                    <div id="calendar-body"
-                         class="divide-y divide-slate-800/60">
-                    </div>
-
+            <div class="overflow-x-auto flex-1 p-3 hidden custom-scrollbar" id="grid-container-wrapper">
+                <div id="calendar-container" class="min-w-max border border-slate-800 rounded-lg overflow-hidden excel-grid bg-slate-950">
+                    <div id="calendar-header" class="grid text-center font-bold text-xs select-none bg-slate-900 border-b border-slate-800"></div>
+                    <div id="calendar-body" class="divide-y divide-slate-800/60"></div>
                 </div>
-
             </div>
-
         </div>
-
     </main>
 
-
-    <!-- =========================================================
-         CONSOLE
-    ========================================================== -->
-
-    <div class="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 border-t border-slate-800 backdrop-blur-md shadow-[0_-10px_30px_rgba(0,0,0,0.8)] transform transition-transform duration-300 translate-y-full"
-         id="console-drawer">
-
-        <button id="btn-toggle-console"
-                class="absolute -top-9 left-1/2 transform -translate-x-1/2 bg-slate-900 border border-b-0 border-slate-800 px-5 py-1.5 rounded-t-xl text-xs font-bold text-emerald-400 flex items-center gap-2 hover:bg-slate-800 transition">
-
-            <span id="console-icon">
-                ▲
-            </span>
-
-            Termin-Überschneidungen
-
+    <!-- CONSOLE DRAWER -->
+    <div class="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 border-t border-slate-800 backdrop-blur-md shadow-[0_-10px_30px_rgba(0,0,0,0.8)] transform transition-transform duration-300 translate-y-full" id="console-drawer">
+        <button id="btn-toggle-console" class="absolute -top-9 left-1/2 transform -translate-x-1/2 bg-slate-900 border border-b-0 border-slate-800 px-5 py-1.5 rounded-t-xl text-xs font-bold text-emerald-400 flex items-center gap-2 hover:bg-slate-800 transition">
+            <span id="console-icon">▲</span> Termin-Überschneidungen
         </button>
-
-
         <div class="max-w-7xl mx-auto px-4 py-4 max-h-[40vh] overflow-y-auto">
-
             <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
-
-                <h3 class="font-bold text-white text-sm flex items-center gap-2">
-
-                    <span>
-                        Auswertung für:
-                    </span>
-
-                    <span id="console-event-name"
-                          class="text-emerald-400">
-                        ...
-                    </span>
-
-                </h3>
-
+                <h3 class="font-bold text-white text-sm flex items-center gap-2"><span>Auswertung für:</span><span id="console-event-name" class="text-emerald-400">...</span></h3>
             </div>
-
-
-            <div id="console-results"
-                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-            </div>
-
+            <div id="console-results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm"></div>
         </div>
-
     </div>
-
 
     <!-- TOAST -->
+    <div id="toast" class="fixed bottom-16 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-slate-950 px-4 py-2 rounded-xl shadow-2xl font-bold text-sm opacity-0 pointer-events-none transition-opacity duration-300 z-50">Aktion erfolgreich!</div>
 
-    <div id="toast"
-         class="fixed bottom-16 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-slate-950 px-4 py-2 rounded-xl shadow-2xl font-bold text-sm opacity-0 pointer-events-none transition-opacity duration-300 z-50">
-        Aktion erfolgreich!
-    </div>
-
-
-    <!-- =========================================================
-         FIREBASE + APPLICATION
-    ========================================================== -->
-
+    <!-- FIREBASE & APP SCRIPT -->
     <script type="module">
-
-        /* ========================================================
-           FIREBASE IMPORTS
-        ======================================================== */
-
-        import { initializeApp }
-            from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-
-        import {
-            getFirestore,
-            doc,
-            setDoc,
-            updateDoc,
-            deleteField,
-            onSnapshot
-        }
-            from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-
-
-        /* ========================================================
-           🔥 FIREBASE KONFIGURATION
-
-           HIER DEINE WERTE EINTRAGEN
-        ======================================================== */
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, updateDoc, deleteField, onSnapshot } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
         const firebaseConfig = {
-
             apiKey: "AIzaSyAwL4VAhz83s3hn5qmNGv295ir2hSB6xL0",
-
-            authDomain:
-                "meettime-d9ad6.firebaseapp.com",
-
-            projectId:
-                "meettime-d9ad6",
-
-            storageBucket:
-                "meettime-d9ad6.firebasestorage.app",
-
-            messagingSenderId:
-                "217432895903",
-
-            appId:
-                "1:217432895903:web:9f287ce8a5e07b40eecdaa"
-
+            authDomain: "meettime-d9ad6.firebaseapp.com",
+            projectId: "meettime-d9ad6",
+            storageBucket: "meettime-d9ad6.firebasestorage.app",
+            messagingSenderId: "217432895903",
+            appId: "1:217432895903:web:9f287ce8a5e07b40eecdaa"
         };
 
-
-        /* ========================================================
-           FIREBASE STARTEN
-        ======================================================== */
-
-        let firebaseApp;
         let db;
-
         try {
-
-            firebaseApp =
-                initializeApp(firebaseConfig);
-
-            db =
-                getFirestore(firebaseApp);
-
+            db = getFirestore(initializeApp(firebaseConfig));
         } catch (error) {
-
-            console.error(
-                "Firebase Initialisierung fehlgeschlagen:",
-                error
-            );
-
+            console.error("Firebase Initialisierung fehlgeschlagen:", error);
         }
-
-
-        /* ========================================================
-           PALETTE
-        ======================================================== */
 
         const PALETTE = [
-
-            { hex: '#0072B2', name: 'Blau' },
-            { hex: '#E69F00', name: 'Orange' },
-            { hex: '#009E73', name: 'Grün' },
-            { hex: '#D55E00', name: 'Dunkelorange' },
-            { hex: '#CC79A7', name: 'Pink' },
-            { hex: '#56B4E9', name: 'Hellblau' },
-            { hex: '#F0E442', name: 'Gelb' },
-            { hex: '#8B5CF6', name: 'Violett' },
-            { hex: '#E31A1C', name: 'Rot' },
-            { hex: '#00A6A6', name: 'Türkis' },
-            { hex: '#6A3D9A', name: 'Dunkelviolett' },
-            { hex: '#4D4D4D', name: 'Grau' }
-
+            { hex: '#0072B2', name: 'Blau' }, { hex: '#E69F00', name: 'Orange' }, { hex: '#009E73', name: 'Grün' },
+            { hex: '#D55E00', name: 'Dunkelorange' }, { hex: '#CC79A7', name: 'Pink' }, { hex: '#56B4E9', name: 'Hellblau' },
+            { hex: '#F0E442', name: 'Gelb' }, { hex: '#8B5CF6', name: 'Violett' }, { hex: '#E31A1C', name: 'Rot' },
+            { hex: '#00A6A6', name: 'Türkis' }, { hex: '#6A3D9A', name: 'Dunkelviolett' }, { hex: '#4D4D4D', name: 'Grau' }
         ];
 
-
-        /* ========================================================
-           ROOM ID
-
-           Beispiel:
-           #room=room-abcd1234
-        ======================================================== */
-
-        let roomId =
-            window.location.hash.replace('#room=', '');
-
-
+        let roomId = window.location.hash.replace('#room=', '');
         if (!roomId) {
-
-            roomId =
-                'room-' +
-                Math.random()
-                    .toString(36)
-                    .substring(2, 10);
-
-            window.location.hash =
-                `room=${roomId}`;
-
+            roomId = 'room-' + Math.random().toString(36).substring(2, 10);
+            window.location.hash = `room=${roomId}`;
         }
 
-
-        /* ========================================================
-           APPLICATION STATE
-        ======================================================== */
-
-        let roomData = {
-
-            users: {},
-            events: {},
-            availability: {}
-
-        };
-
-
+        let roomData = { users: {}, events: {}, availability: {} };
         let currentEventId = null;
-
         let showOverlay = true;
-
         let isConsoleOpen = false;
-
         let isDragging = false;
-
         let dragSelectMode = true;
-
         let selectedColor = PALETTE[0].hex;
-
         let firebaseUnsubscribe = null;
-
         let firebaseReady = false;
 
-
-        /* ========================================================
-           DOM
-        ======================================================== */
-
         const DOM = {
-
-            profileModal:
-                document.getElementById('modal-profile'),
-
-            eventModal:
-                document.getElementById('modal-event'),
-
-            tutorialModal:
-                document.getElementById('modal-tutorial'),
-
-            profileName:
-                document.getElementById('profile-name'),
-
-            profilesList:
-                document.getElementById('profiles-list'),
-
-            profileFormTitle:
-                document.getElementById('profile-form-title'),
-
-            editingProfileId:
-                document.getElementById('editing-profile-id'),
-
-            btnCancelProfileEdit:
-                document.getElementById('btn-cancel-profile-edit'),
-
-            colorPicker:
-                document.getElementById('color-picker'),
-
-            btnSaveProfile:
-                document.getElementById('btn-save-profile'),
-
-            headerUserName:
-                document.getElementById('header-user-name'),
-
-            headerUserColor:
-                document.getElementById('header-user-color'),
-
-            eventTabs:
-                document.getElementById('event-tabs'),
-
-            btnEditCurrentEvent:
-                document.getElementById('btn-edit-current-event'),
-
-            gridEmptyState:
-                document.getElementById('grid-empty-state'),
-
-            gridContainerWrapper:
-                document.getElementById('grid-container-wrapper'),
-
-            calendarHeader:
-                document.getElementById('calendar-header'),
-
-            calendarBody:
-                document.getElementById('calendar-body'),
-
-            consoleDrawer:
-                document.getElementById('console-drawer'),
-
-            consoleResults:
-                document.getElementById('console-results'),
-
-            consoleEventName:
-                document.getElementById('console-event-name'),
-
-            firebaseStatusDot:
-                document.getElementById('firebase-status-dot'),
-
-            firebaseStatusText:
-                document.getElementById('firebase-status-text')
-
+            profileModal: document.getElementById('modal-profile'),
+            eventModal: document.getElementById('modal-event'),
+            tutorialModal: document.getElementById('modal-tutorial'),
+            profileName: document.getElementById('profile-name'),
+            profilesList: document.getElementById('profiles-list'),
+            profileFormTitle: document.getElementById('profile-form-title'),
+            editingProfileId: document.getElementById('editing-profile-id'),
+            btnCancelProfileEdit: document.getElementById('btn-cancel-profile-edit'),
+            colorPicker: document.getElementById('color-picker'),
+            btnSaveProfile: document.getElementById('btn-save-profile'),
+            headerUserName: document.getElementById('header-user-name'),
+            headerUserColor: document.getElementById('header-user-color'),
+            eventTabs: document.getElementById('event-tabs'),
+            btnEditCurrentEvent: document.getElementById('btn-edit-current-event'),
+            gridEmptyState: document.getElementById('grid-empty-state'),
+            gridContainerWrapper: document.getElementById('grid-container-wrapper'),
+            calendarHeader: document.getElementById('calendar-header'),
+            calendarBody: document.getElementById('calendar-body'),
+            consoleDrawer: document.getElementById('console-drawer'),
+            consoleResults: document.getElementById('console-results'),
+            consoleEventName: document.getElementById('console-event-name'),
+            firebaseStatusDot: document.getElementById('firebase-status-dot'),
+            firebaseStatusText: document.getElementById('firebase-status-text')
         };
 
-
-        /* ========================================================
-           FIREBASE STATUS
-        ======================================================== */
-
-        function setFirebaseStatus(
-            status,
-            text
-        ) {
-
-            DOM.firebaseStatusDot.classList.remove(
-                'connected',
-                'error'
-            );
-
-            if (status === 'connected') {
-
-                DOM.firebaseStatusDot.classList.add(
-                    'connected'
-                );
-
-            }
-
-            if (status === 'error') {
-
-                DOM.firebaseStatusDot.classList.add(
-                    'error'
-                );
-
-            }
-
+        function setFirebaseStatus(status, text) {
+            DOM.firebaseStatusDot.classList.remove('connected', 'error');
+            if (status === 'connected') DOM.firebaseStatusDot.classList.add('connected');
+            if (status === 'error') DOM.firebaseStatusDot.classList.add('error');
             DOM.firebaseStatusText.innerText = text;
-
         }
-
-
-        /* ========================================================
-           FIRESTORE ROOM REFERENCE
-        ======================================================== */
 
         function getRoomRef() {
-
-            if (!db) {
-                throw new Error(
-                    "Firebase ist nicht initialisiert."
-                );
-            }
-
-            return doc(
-                db,
-                'rooms',
-                roomId
-            );
-
+            if (!db) throw new Error("Firebase nicht initialisiert.");
+            return doc(db, 'rooms', roomId);
         }
-
-
-        /* ========================================================
-           FIRESTORE: INITIALEN ROOM ANLEGEN
-        ======================================================== */
 
         async function createEmptyRoomIfNeeded() {
-
             try {
-
-                await setDoc(
-                    getRoomRef(),
-
-                    {
-                        users: {},
-                        events: {},
-                        availability: {}
-                    },
-
-                    {
-                        merge: true
-                    }
-                );
-
+                await setDoc(getRoomRef(), { users: {}, events: {}, availability: {} }, { merge: true });
             } catch (error) {
-
-                console.error(
-                    "Fehler beim Erstellen des Raums:",
-                    error
-                );
-
-                setFirebaseStatus(
-                    'error',
-                    'Firebase Fehler'
-                );
-
+                setFirebaseStatus('error', 'Firebase Fehler');
             }
-
         }
-
-
-        /* ========================================================
-           FIRESTORE: ROOM REALTIME LISTENER
-        ======================================================== */
 
         function startFirebaseSync() {
-
-            if (!db) {
-
-                setFirebaseStatus(
-                    'error',
-                    'Firebase nicht konfiguriert'
-                );
-
-                return;
-
-            }
-
-
-            setFirebaseStatus(
-                'connecting',
-                'Verbinde...'
-            );
-
-
+            if (!db) { setFirebaseStatus('error', 'Nicht konfiguriert'); return; }
+            setFirebaseStatus('connecting', 'Verbinde...');
             try {
-
-                firebaseUnsubscribe =
-                    onSnapshot(
-
-                        getRoomRef(),
-
-                        (snapshot) => {
-
-                            if (!snapshot.exists()) {
-
-                                roomData = {
-
-                                    users: {},
-                                    events: {},
-                                    availability: {}
-
-                                };
-
-                                createEmptyRoomIfNeeded();
-
-                            } else {
-
-                                roomData =
-                                    snapshot.data();
-
-                            }
-
-
-                            roomData.users =
-                                roomData.users || {};
-
-                            roomData.events =
-                                roomData.events || {};
-
-                            roomData.availability =
-                                roomData.availability || {};
-
-
-                            firebaseReady = true;
-
-
-                            setFirebaseStatus(
-                                'connected',
-                                'Live verbunden'
-                            );
-
-
-                            renderEvents();
-
-                            renderGrid();
-
-                            renderConsole();
-
-                        },
-
-                        (error) => {
-
-                            console.error(
-                                "Firestore Listener Fehler:",
-                                error
-                            );
-
-                            firebaseReady = false;
-
-                            setFirebaseStatus(
-                                'error',
-                                'Verbindungsfehler'
-                            );
-
-                        }
-
-                    );
-
-            } catch (error) {
-
-                console.error(
-                    "Firebase Listener konnte nicht gestartet werden:",
-                    error
-                );
-
-                setFirebaseStatus(
-                    'error',
-                    'Firebase Fehler'
-                );
-
-            }
-
-        }
-
-
-        /* ========================================================
-           FIRESTORE: GANZEN ROOM SPEICHERN
-
-           Wird nur für Initialisierung verwendet.
-        ======================================================== */
-
-        async function saveWholeRoom() {
-
-            if (!firebaseReady) {
-                return;
-            }
-
-            try {
-
-                await setDoc(
-                    getRoomRef(),
-                    roomData,
-                    {
-                        merge: true
+                firebaseUnsubscribe = onSnapshot(getRoomRef(), (snapshot) => {
+                    if (!snapshot.exists()) {
+                        roomData = { users: {}, events: {}, availability: {} };
+                        createEmptyRoomIfNeeded();
+                    } else {
+                        roomData = snapshot.data();
                     }
-                );
-
+                    roomData.users = roomData.users || {};
+                    roomData.events = roomData.events || {};
+                    roomData.availability = roomData.availability || {};
+                    firebaseReady = true;
+                    setFirebaseStatus('connected', 'Live verbunden');
+                    renderEvents();
+                    renderGrid();
+                    renderConsole();
+                }, (error) => {
+                    firebaseReady = false;
+                    setFirebaseStatus('error', 'Verbindungsfehler');
+                });
             } catch (error) {
-
-                console.error(
-                    "Firebase Schreibfehler:",
-                    error
-                );
-
-                showToast(
-                    "Fehler beim Speichern"
-                );
-
+                setFirebaseStatus('error', 'Firebase Fehler');
             }
-
         }
-
-
-        /* ========================================================
-           FIRESTORE: PROFIL SYNCHRONISIEREN
-        ======================================================== */
 
         async function saveUserToRoom(profile) {
-
-            if (!firebaseReady) {
-                return;
-            }
-
+            if (!firebaseReady) return;
             try {
-
-                await updateDoc(
-
-                    getRoomRef(),
-
-                    {
-                        [`users.${profile.id}`]: {
-
-                            name: profile.name,
-                            color: profile.color
-
-                        }
-                    }
-
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "Profil konnte nicht gespeichert werden:",
-                    error
-                );
-
-            }
-
+                await updateDoc(getRoomRef(), { [`users.${profile.id}`]: { name: profile.name, color: profile.color } });
+            } catch (error) { console.error(error); }
         }
 
-
-        /* ========================================================
-           FIRESTORE: EVENT SPEICHERN
-        ======================================================== */
-
-        async function saveEventToRoom(
-            eventId,
-            event
-        ) {
-
-            if (!firebaseReady) {
-                return;
-            }
-
-            try {
-
-                await updateDoc(
-
-                    getRoomRef(),
-
-                    {
-                        [`events.${eventId}`]: event
-                    }
-
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "Event konnte nicht gespeichert werden:",
-                    error
-                );
-
-                showToast(
-                    "Event konnte nicht gespeichert werden"
-                );
-
-            }
-
+        async function saveEventToRoom(eventId, event) {
+            if (!firebaseReady) return;
+            try { await updateDoc(getRoomRef(), { [`events.${eventId}`]: event }); } catch (error) { showToast("Speicherfehler"); }
         }
 
-
-        /* ========================================================
-           FIRESTORE: EVENT LÖSCHEN
-        ======================================================== */
-
-        async function deleteEventFromRoom(
-            eventId
-        ) {
-
-            if (!firebaseReady) {
-                return;
-            }
-
-            try {
-
-                await updateDoc(
-
-                    getRoomRef(),
-
-                    {
-                        [`events.${eventId}`]:
-                            deleteField(),
-
-                        [`availability.${eventId}`]:
-                            deleteField()
-
-                    }
-
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "Event konnte nicht gelöscht werden:",
-                    error
-                );
-
-                showToast(
-                    "Event konnte nicht gelöscht werden"
-                );
-
-            }
-
+        async function deleteEventFromRoom(eventId) {
+            if (!firebaseReady) return;
+            try { await updateDoc(getRoomRef(), { [`events.${eventId}`]: deleteField(), [`availability.${eventId}`]: deleteField() }); } catch (error) { showToast("Löschfehler"); }
         }
 
-
-        /* ========================================================
-           FIRESTORE: AVAILABILITY SPEICHERN
-        ======================================================== */
-
-        async function saveAvailability(
-            eventId,
-            profileId,
-            slots
-        ) {
-
-            if (!firebaseReady) {
-                return;
-            }
-
-            try {
-
-                await updateDoc(
-
-                    getRoomRef(),
-
-                    {
-                        [`availability.${eventId}.${profileId}`]:
-                            slots
-                    }
-
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "Verfügbarkeit konnte nicht gespeichert werden:",
-                    error
-                );
-
-                showToast(
-                    "Speichern fehlgeschlagen"
-                );
-
-            }
-
+        async function saveAvailability(eventId, profileId, slots) {
+            if (!firebaseReady) return;
+            try { await updateDoc(getRoomRef(), { [`availability.${eventId}.${profileId}`]: slots }); } catch (error) { showToast("Speichern fehlgeschlagen"); }
         }
-
-
-        /* ========================================================
-           PROFILE
-        ======================================================== */
 
         function getStoredProfiles() {
-
-            try {
-
-                const p =
-                    localStorage.getItem(
-                        'tf_profiles'
-                    );
-
-                return p
-                    ? JSON.parse(p)
-                    : [];
-
-            } catch (e) {
-
-                return [];
-
-            }
-
+            try { const p = localStorage.getItem('tf_profiles'); return p ? JSON.parse(p) : []; } catch (e) { return []; }
         }
 
-
-        function saveStoredProfiles(
-            profiles
-        ) {
-
-            localStorage.setItem(
-                'tf_profiles',
-                JSON.stringify(profiles)
-            );
-
+        function saveStoredProfiles(profiles) {
+            localStorage.setItem('tf_profiles', JSON.stringify(profiles));
         }
 
-
-        let activeProfileId =
-            localStorage.getItem(
-                'tf_active_profile_id'
-            ) || null;
-
+        let activeProfileId = localStorage.getItem('tf_active_profile_id') || null;
 
         function getActiveProfile() {
-
-            const profiles =
-                getStoredProfiles();
-
-
+            const profiles = getStoredProfiles();
             if (profiles.length === 0) {
-
-                const def = {
-
-                    id:
-                        'prof-' +
-                        Date.now(),
-
-                    name:
-                        'Mein Profil',
-
-                    color:
-                        PALETTE[0].hex
-
-                };
-
-
-                saveStoredProfiles([
-                    def
-                ]);
-
-
-                localStorage.setItem(
-                    'tf_active_profile_id',
-                    def.id
-                );
-
-
-                activeProfileId =
-                    def.id;
-
-
+                const def = { id: 'prof-' + Date.now(), name: 'Mein Profil', color: PALETTE[0].hex };
+                saveStoredProfiles([def]);
+                localStorage.setItem('tf_active_profile_id', def.id);
+                activeProfileId = def.id;
                 return def;
-
             }
-
-
-            let active =
-                profiles.find(
-                    p =>
-                        p.id === activeProfileId
-                );
-
-
+            let active = profiles.find(p => p.id === activeProfileId);
             if (!active) {
-
-                active =
-                    profiles[0];
-
-                activeProfileId =
-                    active.id;
-
-                localStorage.setItem(
-                    'tf_active_profile_id',
-                    active.id
-                );
-
+                active = profiles[0];
+                activeProfileId = active.id;
+                localStorage.setItem('tf_active_profile_id', active.id);
             }
-
-
             return active;
-
         }
-
-
-        /* ========================================================
-           PROFILE -> ROOM
-        ======================================================== */
 
         function syncActiveProfileToRoom() {
-
-            const active =
-                getActiveProfile();
-
-
-            if (!roomData.users) {
-                roomData.users = {};
-            }
-
-
-            roomData.users[active.id] = {
-
-                name:
-                    active.name,
-
-                color:
-                    active.color
-
-            };
-
-
-            // Firebase speichern
-            saveUserToRoom(
-                active
-            );
-
+            const active = getActiveProfile();
+            if (!roomData.users) roomData.users = {};
+            roomData.users[active.id] = { name: active.name, color: active.color };
+            saveUserToRoom(active);
         }
-
-
-        /* ========================================================
-           COLOR PICKER
-        ======================================================== */
 
         function initColorPicker() {
-
             DOM.colorPicker.innerHTML = '';
-
-
-            PALETTE.forEach(
-                item => {
-
-                    const btn =
-                        document.createElement(
-                            'button'
-                        );
-
-
-                    btn.type = 'button';
-
-
-                    const isSelected =
-                        item.hex === selectedColor;
-
-
-                    btn.className =
-                        `w-8 h-8 rounded-full border-2 transition-transform transform hover:scale-110 flex items-center justify-center ${
-                            isSelected
-                            ? 'border-white scale-110 shadow-lg ring-2 ring-white/40'
-                            : 'border-transparent'
-                        }`;
-
-
-                    btn.style.backgroundColor =
-                        item.hex;
-
-
-                    btn.title =
-                        item.name;
-
-
-                    if (isSelected) {
-
-                        btn.innerHTML =
-                            '<span class="text-slate-950 font-bold text-xs">✓</span>';
-
-                    }
-
-
-                    btn.onclick =
-                        () => {
-
-                            selectedColor =
-                                item.hex;
-
-                            initColorPicker();
-
-                        };
-
-
-                    DOM.colorPicker.appendChild(
-                        btn
-                    );
-
-                }
-            );
-
+            PALETTE.forEach(item => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = item.hex === selectedColor;
+                btn.className = `w-8 h-8 rounded-full border-2 transition-transform transform hover:scale-110 flex items-center justify-center ${isSelected ? 'border-white scale-110 shadow-lg ring-2 ring-white/40' : 'border-transparent'}`;
+                btn.style.backgroundColor = item.hex;
+                btn.title = item.name;
+                if (isSelected) btn.innerHTML = '<span class="text-slate-950 font-bold text-xs">✓</span>';
+                btn.onclick = () => { selectedColor = item.hex; initColorPicker(); };
+                DOM.colorPicker.appendChild(btn);
+            });
         }
-
-
-        /* ========================================================
-           PROFILE LIST
-        ======================================================== */
 
         function renderProfilesList() {
-
-            DOM.profilesList.innerHTML =
-                '';
-
-
-            const profiles =
-                getStoredProfiles();
-
-
-            profiles.forEach(
-                p => {
-
-                    const isCurrent =
-                        p.id === activeProfileId;
-
-
-                    const div =
-                        document.createElement(
-                            'div'
-                        );
-
-
-                    div.className =
-                        `flex items-center justify-between p-2.5 rounded-xl border transition ${
-                            isCurrent
-                            ? 'bg-emerald-950/40 border-emerald-500/50'
-                            : 'bg-slate-950 border-slate-800 hover:border-slate-700'
-                        }`;
-
-
-                    div.innerHTML = `
-
-                        <div class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0"
-                             data-switch-profile="${p.id}">
-
-                            <div class="w-4 h-4 rounded-full shrink-0"
-                                 style="background-color: ${escapeHtml(p.color)}">
-                            </div>
-
-                            <span class="font-bold text-xs text-white truncate">
-                                ${escapeHtml(p.name)}
-                            </span>
-
-                            ${
-                                isCurrent
-                                ?
-                                '<span class="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-bold uppercase">Aktiv</span>'
-                                :
-                                ''
-                            }
-
-                        </div>
-
-
-                        <div class="flex items-center gap-1 shrink-0">
-
-                            <button data-edit-profile="${p.id}"
-                                    class="text-slate-400 hover:text-white p-1 text-xs"
-                                    title="Bearbeiten">
-                                ✏️
-                            </button>
-
-                            ${
-                                profiles.length > 1
-                                ?
-                                `
-                                <button data-delete-profile="${p.id}"
-                                        class="text-slate-400 hover:text-rose-400 p-1 text-xs"
-                                        title="Löschen">
-                                    🗑️
-                                </button>
-                                `
-                                :
-                                ''
-                            }
-
-                        </div>
-
-                    `;
-
-
-                    div.querySelector(
-                        '[data-switch-profile]'
-                    ).onclick =
-                        () =>
-                            switchActiveProfile(
-                                p.id
-                            );
-
-
-                    div.querySelector(
-                        '[data-edit-profile]'
-                    ).onclick =
-                        () =>
-                            editProfile(
-                                p.id
-                            );
-
-
-                    const deleteButton =
-                        div.querySelector(
-                            '[data-delete-profile]'
-                        );
-
-
-                    if (deleteButton) {
-
-                        deleteButton.onclick =
-                            () =>
-                                deleteProfile(
-                                    p.id
-                                );
-
-                    }
-
-
-                    DOM.profilesList.appendChild(
-                        div
-                    );
-
-                }
-            );
-
+            DOM.profilesList.innerHTML = '';
+            const profiles = getStoredProfiles();
+            profiles.forEach(p => {
+                const isCurrent = p.id === activeProfileId;
+                const div = document.createElement('div');
+                div.className = `flex items-center justify-between p-2.5 rounded-xl border transition ${isCurrent ? 'bg-emerald-950/40 border-emerald-500/50' : 'bg-slate-950 border-slate-800 hover:border-slate-700'}`;
+                div.innerHTML = `
+                    <div class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0" data-switch-profile="${p.id}">
+                        <div class="w-4 h-4 rounded-full shrink-0" style="background-color: ${escapeHtml(p.color)}"></div>
+                        <span class="font-bold text-xs text-white truncate">${escapeHtml(p.name)}</span>
+                        ${isCurrent ? '<span class="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-bold uppercase">Aktiv</span>' : ''}
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button data-edit-profile="${p.id}" class="text-slate-400 hover:text-white p-1 text-xs">✏️</button>
+                        ${profiles.length > 1 ? `<button data-delete-profile="${p.id}" class="text-slate-400 hover:text-rose-400 p-1 text-xs">🗑️</button>` : ''}
+                    </div>
+                `;
+                div.querySelector('[data-switch-profile]').onclick = () => switchActiveProfile(p.id);
+                div.querySelector('[data-edit-profile]').onclick = () => editProfile(p.id);
+                const delBtn = div.querySelector('[data-delete-profile]');
+                if (delBtn) delBtn.onclick = () => deleteProfile(p.id);
+                DOM.profilesList.appendChild(div);
+            });
         }
 
-
-        /* ========================================================
-           PROFILE SWITCH
-        ======================================================== */
-
-        function switchActiveProfile(
-            profileId
-        ) {
-
-            activeProfileId =
-                profileId;
-
-
-            localStorage.setItem(
-                'tf_active_profile_id',
-                profileId
-            );
-
-
+        function switchActiveProfile(profileId) {
+            activeProfileId = profileId;
+            localStorage.setItem('tf_active_profile_id', profileId);
             updateHeaderProfileUI();
-
             renderProfilesList();
-
             renderGrid();
-
             renderConsole();
-
-            showToast(
-                "Profil gewechselt!"
-            );
-
+            showToast("Profil gewechselt!");
         }
 
-
-        /* ========================================================
-           EDIT PROFILE
-        ======================================================== */
-
-        function editProfile(
-            profileId
-        ) {
-
-            const profiles =
-                getStoredProfiles();
-
-
-            const target =
-                profiles.find(
-                    p =>
-                        p.id === profileId
-                );
-
-
-            if (!target) {
-                return;
-            }
-
-
-            DOM.editingProfileId.value =
-                target.id;
-
-
-            DOM.profileName.value =
-                target.name;
-
-
-            selectedColor =
-                target.color;
-
-
-            DOM.profileFormTitle.innerText =
-                "Profil bearbeiten";
-
-
-            DOM.btnCancelProfileEdit.classList.remove(
-                'hidden'
-            );
-
-
+        function editProfile(profileId) {
+            const profiles = getStoredProfiles();
+            const target = profiles.find(p => p.id === profileId);
+            if (!target) return;
+            DOM.editingProfileId.value = target.id;
+            DOM.profileName.value = target.name;
+            selectedColor = target.color;
+            DOM.profileFormTitle.innerText = "Profil bearbeiten";
+            DOM.btnCancelProfileEdit.classList.remove('hidden');
             initColorPicker();
-
         }
 
-
-        /* ========================================================
-           DELETE PROFILE
-        ======================================================== */
-
-        async function deleteProfile(
-            profileId
-        ) {
-
-            let profiles =
-                getStoredProfiles();
-
-
-            if (profiles.length <= 1) {
-                return;
+        async function deleteProfile(profileId) {
+            let profiles = getStoredProfiles();
+            if (profiles.length <= 1) return;
+            profiles = profiles.filter(p => p.id !== profileId);
+            saveStoredProfiles(profiles);
+            if (activeProfileId === profileId) {
+                activeProfileId = profiles[0].id;
+                localStorage.setItem('tf_active_profile_id', activeProfileId);
             }
-
-
-            profiles =
-                profiles.filter(
-                    p =>
-                        p.id !== profileId
-                );
-
-
-            saveStoredProfiles(
-                profiles
-            );
-
-
-            if (
-                activeProfileId ===
-                profileId
-            ) {
-
-                activeProfileId =
-                    profiles[0].id;
-
-
-                localStorage.setItem(
-                    'tf_active_profile_id',
-                    activeProfileId
-                );
-
-            }
-
-
-            // Profil auch aus Firebase löschen
             if (firebaseReady) {
-
-                try {
-
-                    await updateDoc(
-
-                        getRoomRef(),
-
-                        {
-                            [`users.${profileId}`]:
-                                deleteField()
-                        }
-
-                    );
-
-                } catch (error) {
-
-                    console.error(
-                        error
-                    );
-
-                }
-
+                try { await updateDoc(getRoomRef(), { [`users.${profileId}`]: deleteField() }); } catch(e){}
             }
-
-
             updateHeaderProfileUI();
-
             renderProfilesList();
-
             renderGrid();
-
             renderConsole();
-
-            showToast(
-                "Profil gelöscht"
-            );
-
+            showToast("Profil gelöscht");
         }
-
-
-        /* ========================================================
-           UPDATE HEADER
-        ======================================================== */
 
         function updateHeaderProfileUI() {
-
-            const active =
-                getActiveProfile();
-
-
-            DOM.headerUserName.innerText =
-                active.name;
-
-
-            DOM.headerUserColor.style.backgroundColor =
-                active.color;
-
-
+            const active = getActiveProfile();
+            DOM.headerUserName.innerText = active.name;
+            DOM.headerUserColor.style.backgroundColor = active.color;
             syncActiveProfileToRoom();
-
         }
-
-
-        /* ========================================================
-           RESET PROFILE FORM
-        ======================================================== */
 
         function resetProfileForm() {
-
-            DOM.editingProfileId.value =
-                '';
-
-
-            DOM.profileName.value =
-                '';
-
-
-            DOM.profileFormTitle.innerText =
-                "Neues Profil anlegen";
-
-
-            DOM.btnCancelProfileEdit.classList.add(
-                'hidden'
-            );
-
-
-            selectedColor =
-                PALETTE[0].hex;
-
-
+            DOM.editingProfileId.value = '';
+            DOM.profileName.value = '';
+            DOM.profileFormTitle.innerText = "Neues Profil anlegen";
+            DOM.btnCancelProfileEdit.classList.add('hidden');
+            selectedColor = PALETTE[0].hex;
             initColorPicker();
-
         }
 
-
-        /* ========================================================
-           SAVE PROFILE
-        ======================================================== */
-
-        DOM.btnSaveProfile.onclick =
-            async () => {
-
-                const name =
-                    DOM.profileName.value.trim();
-
-
-                if (!name) {
-
-                    showToast(
-                        "Bitte einen Namen eingeben."
-                    );
-
-                    return;
-
-                }
-
-
-                let profiles =
-                    getStoredProfiles();
-
-
-                const editId =
-                    DOM.editingProfileId.value;
-
-
-                if (editId) {
-
-                    profiles =
-                        profiles.map(
-                            p =>
-                                p.id === editId
-                                ?
-                                {
-                                    ...p,
-                                    name,
-                                    color: selectedColor
-                                }
-                                :
-                                p
-                        );
-
-
-                    const updatedProfile =
-                        profiles.find(
-                            p =>
-                                p.id === editId
-                        );
-
-
-                    if (updatedProfile) {
-
-                        await saveUserToRoom(
-                            updatedProfile
-                        );
-
-                    }
-
-                } else {
-
-                    const newProf = {
-
-                        id:
-                            'prof-' +
-                            Date.now() +
-                            '-' +
-                            Math.random()
-                                .toString(36)
-                                .substring(2, 7),
-
-                        name,
-
-                        color:
-                            selectedColor
-
-                    };
-
-
-                    profiles.push(
-                        newProf
-                    );
-
-
-                    activeProfileId =
-                        newProf.id;
-
-
-                    localStorage.setItem(
-                        'tf_active_profile_id',
-                        activeProfileId
-                    );
-
-
-                    await saveUserToRoom(
-                        newProf
-                    );
-
-                }
-
-
-                saveStoredProfiles(
-                    profiles
-                );
-
-
-                updateHeaderProfileUI();
-
-                resetProfileForm();
-
-                renderProfilesList();
-
-                renderGrid();
-
-                renderConsole();
-
-                showToast(
-                    "Profil gespeichert!"
-                );
-
-            };
-
-
-        /* ========================================================
-           PROFILE MODAL
-        ======================================================== */
-
-        document.getElementById(
-            'btn-manage-profiles'
-        ).onclick =
-            () => {
-
-                resetProfileForm();
-
-                renderProfilesList();
-
-                DOM.profileModal.classList.remove(
-                    'hidden'
-                );
-
-            };
-
-
-        document.getElementById(
-            'btn-close-profile-modal'
-        ).onclick =
-            () =>
-                DOM.profileModal.classList.add(
-                    'hidden'
-                );
-
-
-        DOM.btnCancelProfileEdit.onclick =
-            () =>
-                resetProfileForm();
-
-
-        /* ========================================================
-           TUTORIAL
-        ======================================================== */
-
-        document.getElementById(
-            'btn-open-tutorial'
-        ).onclick =
-            () =>
-                DOM.tutorialModal.classList.remove(
-                    'hidden'
-                );
-
-
-        document.getElementById(
-            'btn-close-tutorial'
-        ).onclick =
-            () =>
-                DOM.tutorialModal.classList.add(
-                    'hidden'
-                );
-
-
-        document.getElementById(
-            'btn-tutorial-ok'
-        ).onclick =
-            () =>
-                DOM.tutorialModal.classList.add(
-                    'hidden'
-                );
-
-
-        /* ========================================================
-           OVERLAY TOGGLE
-        ======================================================== */
-
-        const toggleInput =
-            document.getElementById(
-                'toggle-overlay'
-            );
-
-
-        const toggleBg =
-            document.getElementById(
-                'toggle-bg'
-            );
-
-
-        const toggleDot =
-            document.getElementById(
-                'toggle-dot'
-            );
-
-
-        toggleInput.checked =
-            showOverlay;
-
+        DOM.btnSaveProfile.onclick = async () => {
+            const name = DOM.profileName.value.trim();
+            if (!name) { showToast("Name eingeben"); return; }
+            let profiles = getStoredProfiles();
+            const editId = DOM.editingProfileId.value;
+            if (editId) {
+                profiles = profiles.map(p => p.id === editId ? { ...p, name, color: selectedColor } : p);
+                const updated = profiles.find(p => p.id === editId);
+                if (updated) await saveUserToRoom(updated);
+            } else {
+                const newProf = { id: 'prof-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7), name, color: selectedColor };
+                profiles.push(newProf);
+                activeProfileId = newProf.id;
+                localStorage.setItem('tf_active_profile_id', activeProfileId);
+                await saveUserToRoom(newProf);
+            }
+            saveStoredProfiles(profiles);
+            updateHeaderProfileUI();
+            resetProfileForm();
+            renderProfilesList();
+            renderGrid();
+            renderConsole();
+            showToast("Profil gespeichert!");
+        };
+
+        document.getElementById('btn-manage-profiles').onclick = () => { resetProfileForm(); renderProfilesList(); DOM.profileModal.classList.remove('hidden'); };
+        document.getElementById('btn-close-profile-modal').onclick = () => DOM.profileModal.classList.add('hidden');
+        DOM.btnCancelProfileEdit.onclick = () => resetProfileForm();
+
+        document.getElementById('btn-open-tutorial').onclick = () => DOM.tutorialModal.classList.remove('hidden');
+        document.getElementById('btn-close-tutorial').onclick = () => DOM.tutorialModal.classList.add('hidden');
+        document.getElementById('btn-tutorial-ok').onclick = () => DOM.tutorialModal.classList.add('hidden');
+
+        const toggleInput = document.getElementById('toggle-overlay');
+        const toggleBg = document.getElementById('toggle-bg');
+        const toggleDot = document.getElementById('toggle-dot');
+        toggleInput.checked = showOverlay;
 
         function updateToggleUI() {
-
             if (showOverlay) {
-
-                toggleBg.classList.replace(
-                    'bg-slate-800',
-                    'bg-emerald-600'
-                );
-
-
-                toggleDot.classList.add(
-                    'translate-x-3.5'
-                );
-
+                toggleBg.classList.replace('bg-slate-800', 'bg-emerald-600');
+                toggleDot.classList.add('translate-x-3.5');
             } else {
-
-                toggleBg.classList.replace(
-                    'bg-emerald-600',
-                    'bg-slate-800'
-                );
-
-
-                toggleDot.classList.remove(
-                    'translate-x-3.5'
-                );
-
+                toggleBg.classList.replace('bg-emerald-600', 'bg-slate-800');
+                toggleDot.classList.remove('translate-x-3.5');
             }
-
         }
-
-
         updateToggleUI();
+        toggleInput.addEventListener('change', e => { showOverlay = e.target.checked; updateToggleUI(); renderGrid(); });
 
-
-        toggleInput.addEventListener(
-            'change',
-            e => {
-
-                showOverlay =
-                    e.target.checked;
-
-                updateToggleUI();
-
-                renderGrid();
-
-            }
-        );
-
-
-        /* ========================================================
-           CONSOLE
-        ======================================================== */
-
-        document.getElementById(
-            'btn-toggle-console'
-        ).onclick =
-            () => {
-
-                isConsoleOpen =
-                    !isConsoleOpen;
-
-
-                if (isConsoleOpen) {
-
-                    DOM.consoleDrawer.classList.remove(
-                        'translate-y-full'
-                    );
-
-
-                    document.getElementById(
-                        'console-icon'
-                    ).innerText =
-                        '▼';
-
-                } else {
-
-                    DOM.consoleDrawer.classList.add(
-                        'translate-y-full'
-                    );
-
-
-                    document.getElementById(
-                        'console-icon'
-                    ).innerText =
-                        '▲';
-
-                }
-
-            };
-
-
-        /* ========================================================
-           EVENT MODAL
-        ======================================================== */
-
-        document.getElementById(
-            'btn-new-event'
-        ).onclick =
-            () =>
-                openEventModal();
-
-
-        document.getElementById(
-            'btn-empty-create'
-        ).onclick =
-            () =>
-                openEventModal();
-
-
-        document.getElementById(
-            'btn-close-event-modal'
-        ).onclick =
-            () =>
-                DOM.eventModal.classList.add(
-                    'hidden'
-                );
-
-
-        document.getElementById(
-            'btn-cancel-event'
-        ).onclick =
-            () =>
-                DOM.eventModal.classList.add(
-                    'hidden'
-                );
-
-
-        DOM.btnEditCurrentEvent.onclick =
-            () => {
-
-                if (
-                    currentEventId &&
-                    roomData.events &&
-                    roomData.events[currentEventId]
-                ) {
-
-                    openEventModal(
-                        currentEventId
-                    );
-
-                }
-
-            };
-
-
-        function openEventModal(
-            eventIdToEdit = null
-        ) {
-
-            if (eventIdToEdit) {
-
-                const ev =
-                    roomData.events[
-                        eventIdToEdit
-                    ];
-
-
-                if (!ev) {
-                    return;
-                }
-
-
-                document.getElementById(
-                    'editing-event-id'
-                ).value =
-                    eventIdToEdit;
-
-
-                document.getElementById(
-                    'event-modal-title'
-                ).innerText =
-                    "Event bearbeiten";
-
-
-                document.getElementById(
-                    'event-modal-subtitle'
-                ).innerText =
-                    "Name oder Kalender-Zeitraum anpassen.";
-
-
-                document.getElementById(
-                    'event-name'
-                ).value =
-                    ev.name;
-
-
-                document.getElementById(
-                    'event-start'
-                ).value =
-                    ev.start;
-
-
-                document.getElementById(
-                    'event-end'
-                ).value =
-                    ev.end;
-
-
-                document.getElementById(
-                    'btn-delete-event'
-                ).classList.remove(
-                    'hidden'
-                );
-
+        document.getElementById('btn-toggle-console').onclick = () => {
+            isConsoleOpen = !isConsoleOpen;
+            if (isConsoleOpen) {
+                DOM.consoleDrawer.classList.remove('translate-y-full');
+                document.getElementById('console-icon').innerText = '▼';
             } else {
-
-                document.getElementById(
-                    'editing-event-id'
-                ).value =
-                    '';
-
-
-                document.getElementById(
-                    'event-modal-title'
-                ).innerText =
-                    "Neues Event anlegen";
-
-
-                document.getElementById(
-                    'event-modal-subtitle'
-                ).innerText =
-                    "Bestimme Name und Zeitraum im Kalender.";
-
-
-                document.getElementById(
-                    'event-name'
-                ).value =
-                    '';
-
-
-                const today =
-                    new Date();
-
-
-                const future =
-                    new Date();
-
-
-                future.setDate(
-                    today.getDate() + 3
-                );
-
-
-                document.getElementById(
-                    'event-start'
-                ).value =
-                    toLocalISODate(
-                        today
-                    );
-
-
-                document.getElementById(
-                    'event-end'
-                ).value =
-                    toLocalISODate(
-                        future
-                    );
-
-
-                document.getElementById(
-                    'btn-delete-event'
-                ).classList.add(
-                    'hidden'
-                );
-
+                DOM.consoleDrawer.classList.add('translate-y-full');
+                document.getElementById('console-icon').innerText = '▲';
             }
+        };
 
+        document.getElementById('btn-new-event').onclick = () => openEventModal();
+        document.getElementById('btn-empty-create').onclick = () => openEventModal();
+        document.getElementById('btn-close-event-modal').onclick = () => DOM.eventModal.classList.add('hidden');
+        document.getElementById('btn-cancel-event').onclick = () => DOM.eventModal.classList.add('hidden');
+        DOM.btnEditCurrentEvent.onclick = () => { if (currentEventId && roomData.events?.[currentEventId]) openEventModal(currentEventId); };
 
-            DOM.eventModal.classList.remove(
-                'hidden'
-            );
-
+        function openEventModal(eventIdToEdit = null) {
+            if (eventIdToEdit) {
+                const ev = roomData.events[eventIdToEdit];
+                if (!ev) return;
+                document.getElementById('editing-event-id').value = eventIdToEdit;
+                document.getElementById('event-modal-title').innerText = "Event bearbeiten";
+                document.getElementById('event-modal-subtitle').innerText = "Zeitraum anpassen.";
+                document.getElementById('event-name').value = ev.name;
+                document.getElementById('event-start').value = ev.start;
+                document.getElementById('event-end').value = ev.end;
+                document.getElementById('btn-delete-event').classList.remove('hidden');
+            } else {
+                document.getElementById('editing-event-id').value = '';
+                document.getElementById('event-modal-title').innerText = "Neues Event anlegen";
+                document.getElementById('event-modal-subtitle').innerText = "Name und Zeitraum bestimmen.";
+                document.getElementById('event-name').value = '';
+                const today = new Date();
+                const future = new Date(); future.setDate(today.getDate() + 3);
+                document.getElementById('event-start').value = toLocalISODate(today);
+                document.getElementById('event-end').value = toLocalISODate(future);
+                document.getElementById('btn-delete-event').classList.add('hidden');
+            }
+            DOM.eventModal.classList.remove('hidden');
         }
 
-
-        /* ========================================================
-           SAVE EVENT
-        ======================================================== */
-
-        document.getElementById(
-            'btn-save-event'
-        ).onclick =
-            async () => {
-
-                const name =
-                    document.getElementById(
-                        'event-name'
-                    ).value.trim();
-
-
-                const start =
-                    document.getElementById(
-                        'event-start'
-                    ).value;
-
-
-                const end =
-                    document.getElementById(
-                        'event-end'
-                    ).value;
-
-
-                const editId =
-                    document.getElementById(
-                        'editing-event-id'
-                    ).value;
-
-
-                if (
-                    !name ||
-                    !start ||
-                    !end
-                ) {
-
-                    showToast(
-                        "Bitte alle Felder ausfüllen"
-                    );
-
-                    return;
-
-                }
-
-
-                if (
-                    new Date(start) >
-                    new Date(end)
-                ) {
-
-                    showToast(
-                        "Startdatum muss vor Enddatum liegen"
-                    );
-
-                    return;
-
-                }
-
-
-                const eventId =
-                    editId ||
-                    (
-                        'evt-' +
-                        Date.now() +
-                        '-' +
-                        Math.random()
-                            .toString(36)
-                            .substring(2, 7)
-                    );
-
-
-                const eventData = {
-
-                    name,
-                    start,
-                    end
-
-                };
-
-
-                // Lokales UI sofort aktualisieren
-                if (!roomData.events) {
-                    roomData.events = {};
-                }
-
-
-                roomData.events[eventId] =
-                    eventData;
-
-
-                currentEventId =
-                    eventId;
-
-
-                // Firebase
-                await saveEventToRoom(
-                    eventId,
-                    eventData
-                );
-
-
-                DOM.eventModal.classList.add(
-                    'hidden'
-                );
-
-
-                renderEvents();
-
-                renderGrid();
-
-                renderConsole();
-
-
-                showToast(
-                    editId
-                    ?
-                    "Event aktualisiert!"
-                    :
-                    "Neues Event erstellt!"
-                );
-
-            };
-
-
-        /* ========================================================
-           DELETE EVENT
-        ======================================================== */
-
-        document.getElementById(
-            'btn-delete-event'
-        ).onclick =
-            async () => {
-
-                const editId =
-                    document.getElementById(
-                        'editing-event-id'
-                    ).value;
-
-
-                if (
-                    !editId ||
-                    !roomData.events[editId]
-                ) {
-                    return;
-                }
-
-
-                delete roomData.events[
-                    editId
-                ];
-
-
-                if (
-                    roomData.availability &&
-                    roomData.availability[editId]
-                ) {
-
-                    delete roomData.availability[
-                        editId
-                    ];
-
-                }
-
-
-                await deleteEventFromRoom(
-                    editId
-                );
-
-
-                currentEventId =
-                    null;
-
-
-                DOM.eventModal.classList.add(
-                    'hidden'
-                );
-
-
-                renderEvents();
-
-                renderGrid();
-
-                renderConsole();
-
-
-                showToast(
-                    "Event gelöscht."
-                );
-
-            };
-
-
-        /* ========================================================
-           RENDER EVENTS
-        ======================================================== */
+        document.getElementById('btn-save-event').onclick = async () => {
+            const name = document.getElementById('event-name').value.trim();
+            const start = document.getElementById('event-start').value;
+            const end = document.getElementById('event-end').value;
+            const editId = document.getElementById('editing-event-id').value;
+            if (!name || !start || !end) { showToast("Alle Felder ausfüllen"); return; }
+            if (new Date(start) > new Date(end)) { showToast("Start nach Ende"); return; }
+
+            const eventId = editId || ('evt-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7));
+            const eventData = { name, start, end };
+            if (!roomData.events) roomData.events = {};
+            roomData.events[eventId] = eventData;
+            currentEventId = eventId;
+            await saveEventToRoom(eventId, eventData);
+            DOM.eventModal.classList.add('hidden');
+            renderEvents();
+            renderGrid();
+            renderConsole();
+            showToast(editId ? "Event aktualisiert!" : "Event erstellt!");
+        };
+
+        document.getElementById('btn-delete-event').onclick = async () => {
+            const editId = document.getElementById('editing-event-id').value;
+            if (!editId || !roomData.events[editId]) return;
+            delete roomData.events[editId];
+            if (roomData.availability?.[editId]) delete roomData.availability[editId];
+            await deleteEventFromRoom(editId);
+            currentEventId = null;
+            DOM.eventModal.classList.add('hidden');
+            renderEvents();
+            renderGrid();
+            renderConsole();
+            showToast("Event gelöscht.");
+        };
 
         function renderEvents() {
-
-            DOM.eventTabs.innerHTML =
-                '';
-
-
-            const eventKeys =
-                Object.keys(
-                    roomData.events || {}
-                );
-
-
+            DOM.eventTabs.innerHTML = '';
+            const eventKeys = Object.keys(roomData.events || {});
             if (eventKeys.length === 0) {
-
-                currentEventId =
-                    null;
-
-
-                DOM.btnEditCurrentEvent.classList.add(
-                    'hidden'
-                );
-
-
+                currentEventId = null;
+                DOM.btnEditCurrentEvent.classList.add('hidden');
                 return;
-
             }
+            eventKeys.sort((a, b) => new Date(roomData.events[a].start) - new Date(roomData.events[b].start));
+            if (!currentEventId || !roomData.events[currentEventId]) currentEventId = eventKeys[0];
+            DOM.btnEditCurrentEvent.classList.remove('hidden');
 
-
-            eventKeys.sort(
-                (a, b) =>
-                    new Date(
-                        roomData.events[a].start
-                    ) -
-                    new Date(
-                        roomData.events[b].start
-                    )
-            );
-
-
-            if (
-                !currentEventId ||
-                !roomData.events[currentEventId]
-            ) {
-
-                currentEventId =
-                    eventKeys[0];
-
-            }
-
-
-            DOM.btnEditCurrentEvent.classList.remove(
-                'hidden'
-            );
-
-
-            eventKeys.forEach(
-                eId => {
-
-                    const ev =
-                        roomData.events[eId];
-
-
-                    const btn =
-                        document.createElement(
-                            'button'
-                        );
-
-
-                    const isSelected =
-                        currentEventId === eId;
-
-
-                    btn.className =
-                        `px-3 py-1 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 ${
-                            isSelected
-                            ?
-                            'bg-emerald-600 text-slate-950 font-bold shadow-md shadow-emerald-600/20 border border-emerald-500'
-                            :
-                            'bg-slate-950 text-slate-400 hover:bg-slate-800 hover:text-white border border-slate-800'
-                        }`;
-
-
-                    btn.innerHTML =
-                        `<span>📋 ${escapeHtml(ev.name)}</span>`;
-
-
-                    btn.onclick =
-                        () => {
-
-                            currentEventId =
-                                eId;
-
-
-                            renderEvents();
-
-                            renderGrid();
-
-                            renderConsole();
-
-                        };
-
-
-                    DOM.eventTabs.appendChild(
-                        btn
-                    );
-
-                }
-            );
-
+            eventKeys.forEach(eId => {
+                const ev = roomData.events[eId];
+                const btn = document.createElement('button');
+                const isSelected = currentEventId === eId;
+                btn.className = `px-3 py-1 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 ${isSelected ? 'bg-emerald-600 text-slate-950 font-bold shadow-md shadow-emerald-600/20 border border-emerald-500' : 'bg-slate-950 text-slate-400 hover:bg-slate-800 hover:text-white border border-slate-800'}`;
+                btn.innerHTML = `<span>📋 ${escapeHtml(ev.name)}</span>`;
+                btn.onclick = () => { currentEventId = eId; renderEvents(); renderGrid(); renderConsole(); };
+                DOM.eventTabs.appendChild(btn);
+            });
         }
 
-
-        /* ========================================================
-           DATE HELPERS
-        ======================================================== */
-
-        function toLocalISODate(
-            date
-        ) {
-
-            const year =
-                date.getFullYear();
-
-
-            const month =
-                String(
-                    date.getMonth() + 1
-                ).padStart(
-                    2,
-                    '0'
-                );
-
-
-            const day =
-                String(
-                    date.getDate()
-                ).padStart(
-                    2,
-                    '0'
-                );
-
-
+        function toLocalISODate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
-
         }
 
-
-        function getDates(
-            startStr,
-            endStr
-        ) {
-
+        function getDates(startStr, endStr) {
             const dates = [];
-
-
-            if (
-                !startStr ||
-                !endStr
-            ) {
-
-                return dates;
-
-            }
-
-
-            let current =
-                new Date(
-                    startStr +
-                    'T00:00:00'
-                );
-
-
-            const end =
-                new Date(
-                    endStr +
-                    'T00:00:00'
-                );
-
-
+            if (!startStr || !endStr) return dates;
+            let current = new Date(startStr + 'T00:00:00');
+            const end = new Date(endStr + 'T00:00:00');
             let count = 0;
-
-
-            const alphabet =
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-
-            while (
-                current <= end &&
-                count < 31
-            ) {
-
-                const dayStr =
-                    current.toLocaleDateString(
-                        'de-DE',
-                        {
-                            weekday: 'short'
-                        }
-                    );
-
-
-                const dateStr =
-                    current.toLocaleDateString(
-                        'de-DE',
-                        {
-                            day: '2-digit',
-                            month: '2-digit'
-                        }
-                    );
-
-
-                const iso =
-                    toLocalISODate(
-                        current
-                    );
-
-
-                const colLetter =
-                    alphabet[
-                        count % 26
-                    ];
-
-
-                dates.push({
-
-                    colLetter,
-
-                    label:
-                        `${dayStr}<br><span class="text-[10px] text-slate-400 font-normal">${dateStr}</span>`,
-
-                    iso,
-
-                    fullDateStr:
-                        `${dayStr}, ${dateStr}`
-
-                });
-
-
-                current.setDate(
-                    current.getDate() + 1
-                );
-
-
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            while (current <= end && count < 31) {
+                const dayStr = current.toLocaleDateString('de-DE', { weekday: 'short' });
+                const dateStr = current.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+                const iso = toLocalISODate(current);
+                const colLetter = alphabet[count % 26];
+                dates.push({ colLetter, label: `${dayStr}<br><span class="text-[10px] text-slate-400 font-normal">${dateStr}</span>`, iso, fullDateStr: `${dayStr}, ${dateStr}` });
+                current.setDate(current.getDate() + 1);
                 count++;
-
             }
-
-
             return dates;
-
         }
-
-
-        /* ========================================================
-           MY SLOTS
-        ======================================================== */
 
         function getMySlots() {
-
-            if (!currentEventId) {
-                return [];
-            }
-
-
-            const active =
-                getActiveProfile();
-
-
-            return (
-
-                roomData
-                    .availability?.[
-                        currentEventId
-                    ]?.[
-                        active.id
-                    ]
-
-                || []
-
-            );
-
+            if (!currentEventId) return [];
+            const active = getActiveProfile();
+            return roomData.availability?.[currentEventId]?.[active.id] || [];
         }
-
-
-        /* ========================================================
-           GRID
-        ======================================================== */
 
         function renderGrid() {
-
-            if (
-                !currentEventId ||
-                !roomData.events ||
-                !roomData.events[currentEventId]
-            ) {
-
-                DOM.gridEmptyState.classList.remove(
-                    'hidden'
-                );
-
-
-                DOM.gridContainerWrapper.classList.add(
-                    'hidden'
-                );
-
-
-                DOM.consoleEventName.innerText =
-                    '...';
-
-
+            if (!currentEventId || !roomData.events?.[currentEventId]) {
+                DOM.gridEmptyState.classList.remove('hidden');
+                DOM.gridContainerWrapper.classList.add('hidden');
+                DOM.consoleEventName.innerText = '...';
                 return;
-
             }
-
-
-            DOM.gridEmptyState.classList.add(
-                'hidden'
-            );
-
-
-            DOM.gridContainerWrapper.classList.remove(
-                'hidden'
-            );
-
-
-            const ev =
-                roomData.events[
-                    currentEventId
-                ];
-
-
-            DOM.consoleEventName.innerText =
-                ev.name;
-
-
-            const days =
-                getDates(
-                    ev.start,
-                    ev.end
-                );
-
-
-            const hours =
-                Array.from(
-                    {
-                        length: 24
-                    },
-                    (_, i) => i
-                );
-
-
-            const activeProfile =
-                getActiveProfile();
-
-
-            const mySlots =
-                getMySlots();
-
-
-            const allUserIds =
-                Object.keys(
-                    roomData.users || {}
-                );
-
-
-            const totalUsers =
-                allUserIds.length || 1;
-
-
-            const colsStyle =
-                `65px repeat(${days.length}, minmax(80px, 1fr))`;
-
-
-            DOM.calendarHeader.style.gridTemplateColumns =
-                colsStyle;
-
-
-            DOM.calendarHeader.innerHTML =
-
-                '<div class="py-2.5 border-r border-slate-800 text-slate-400 font-mono text-[11px] bg-slate-900 flex items-center justify-center font-bold">Zeit</div>' +
-
-                days
-                    .map(
-                        d =>
-                            `<div class="py-2 px-1 bg-slate-900/90 border-r border-slate-800 font-mono text-xs text-slate-300">
-                                <span class="text-emerald-400 font-bold text-[10px] block">${d.colLetter}</span>
-                                ${d.label}
-                            </div>`
-                    )
-                    .join('');
-
-
-            DOM.calendarBody.innerHTML =
-                '';
-
-
-            document.body.onmouseup =
-                () =>
-                    isDragging = false;
-
-
-            hours.forEach(
-                (
-                    hour,
-                    rowIndex
-                ) => {
-
-                    const row =
-                        document.createElement(
-                            'div'
-                        );
-
-
-                    row.className =
-                        "grid excel-row";
-
-
-                    row.style.gridTemplateColumns =
-                        colsStyle;
-
-
-                    const timeCell =
-                        document.createElement(
-                            'div'
-                        );
-
-
-                    timeCell.className =
-                        "py-2 border-r border-b border-slate-800 text-slate-400 font-mono text-[11px] flex items-center justify-between px-2 bg-slate-900 select-none font-semibold";
-
-
-                    timeCell.innerHTML =
-                        `<span class="text-slate-600 text-[9px]">${rowIndex + 1}</span>
-                         <span>${hour < 10 ? '0' + hour : hour}:00</span>`;
-
-
-                    row.appendChild(
-                        timeCell
-                    );
-
-
-                    days.forEach(
-                        day => {
-
-                            const slotId =
-                                `${day.iso}_${hour}`;
-
-
-                            const isSelectedByMe =
-                                mySlots.includes(
-                                    slotId
-                                );
-
-
-                            let availableUsersCount =
-                                0;
-
-
-                            let availableUserNames =
-                                [];
-
-
-                            allUserIds.forEach(
-                                uid => {
-
-                                    const userAvail =
-
-                                        roomData
-                                            .availability?.[
-                                                currentEventId
-                                            ]?.[
-                                                uid
-                                            ]
-
-                                        || [];
-
-
-                                    if (
-                                        userAvail.includes(
-                                            slotId
-                                        )
-                                    ) {
-
-                                        availableUsersCount++;
-
-
-                                        if (
-                                            roomData.users[uid]?.name
-                                        ) {
-
-                                            availableUserNames.push(
-                                                roomData.users[uid].name
-                                            );
-
-                                        }
-
-                                    }
-
-                                }
-                            );
-
-
-                            const overlapRatio =
-                                totalUsers > 0
-                                ?
-                                availableUsersCount /
-                                totalUsers
-                                :
-                                0;
-
-
-                            const cell =
-                                document.createElement(
-                                    'div'
-                                );
-
-
-                            cell.className =
-                                "excel-cell h-11 cursor-pointer overflow-hidden flex items-center justify-center font-mono text-[11px]";
-
-
-                            cell.dataset.slot =
-                                slotId;
-
-
-                            /* HEATMAP */
-
-                            if (
-                                showOverlay &&
-                                availableUsersCount > 0
-                            ) {
-
-                                if (
-                                    overlapRatio === 1
-                                ) {
-
-                                    cell.className +=
-                                        " perfect-match-glow bg-emerald-500/90 text-slate-950 font-bold";
-
-
-                                    cell.innerHTML =
-                                        `<span>★ ${availableUsersCount}/${totalUsers}</span>`;
-
-                                }
-
-                                else if (
-                                    overlapRatio >= 0.6
-                                ) {
-
-                                    cell.style.backgroundColor =
-                                        "rgba(16, 185, 129, 0.45)";
-
-
-                                    cell.style.color =
-                                        "#a7f3d0";
-
-
-                                    cell.innerHTML =
-                                        `<span>${availableUsersCount}/${totalUsers}</span>`;
-
-                                }
-
-                                else if (
-                                    overlapRatio >= 0.3
-                                ) {
-
-                                    cell.style.backgroundColor =
-                                        "rgba(234, 179, 8, 0.25)";
-
-
-                                    cell.style.color =
-                                        "#fef08a";
-
-
-                                    cell.innerHTML =
-                                        `<span>${availableUsersCount}/${totalUsers}</span>`;
-
-                                }
-
-                                else {
-
-                                    cell.style.backgroundColor =
-                                        "rgba(51, 65, 85, 0.3)";
-
-
-                                    cell.style.color =
-                                        "#94a3b8";
-
-
-                                    cell.innerHTML =
-                                        `<span>${availableUsersCount}/${totalUsers}</span>`;
-
-                                }
-
-                            }
-
-                            else if (
-                                isSelectedByMe
-                            ) {
-
-                                cell.style.backgroundColor =
-                                    activeProfile.color;
-
-
-                                cell.style.color =
-                                    "#000";
-
-
-                                cell.innerHTML =
-                                    '';
-
-                            }
-
-                            else {
-
-                                cell.style.backgroundColor =
-                                    "rgba(11, 15, 25, 0.8)";
-
-                            }
-
-
-                            /* MOUSE ENTER */
-
-                            cell.onmouseenter =
-                                () => {
-
-                                    if (
-                                        isDragging
-                                    ) {
-
-                                        handleInteraction(
-                                            dragSelectMode
-                                        );
-
-                                    }
-
-                                };
-
-
-                            /* CELL INTERACTION */
-
-                            const handleInteraction =
-                                async (
-                                    forceToggle = null
-                                ) => {
-
-                                    let currentSlots =
-                                        getMySlots();
-
-
-                                    const currentlySelected =
-                                        currentSlots.includes(
-                                            slotId
-                                        );
-
-
-                                    const shouldSelect =
-
-                                        forceToggle !== null
-
-                                        ?
-                                        forceToggle
-
-                                        :
-                                        !currentlySelected;
-
-
-                                    if (
-                                        shouldSelect &&
-                                        !currentlySelected
-                                    ) {
-
-                                        currentSlots = [
-                                            ...currentSlots,
-                                            slotId
-                                        ];
-
-                                    }
-
-                                    else if (
-                                        !shouldSelect &&
-                                        currentlySelected
-                                    ) {
-
-                                        currentSlots =
-                                            currentSlots.filter(
-                                                s =>
-                                                    s !== slotId
-                                            );
-
-                                    }
-
-
-                                    if (
-                                        !roomData.availability
-                                    ) {
-
-                                        roomData.availability =
-                                            {};
-
-                                    }
-
-
-                                    if (
-                                        !roomData.availability[
-                                            currentEventId
-                                        ]
-                                    ) {
-
-                                        roomData.availability[
-                                            currentEventId
-                                        ] = {};
-
-                                    }
-
-
-                                    roomData.availability[
-                                        currentEventId
-                                    ][
-                                        activeProfile.id
-                                    ] =
-                                        currentSlots;
-
-
-                                    /*
-                                     * Wichtig:
-                                     * Wir schreiben nur die
-                                     * Availability des aktuellen
-                                     * Benutzers.
-                                     *
-                                     * Dadurch überschreibt ein
-                                     * anderer Teilnehmer nicht
-                                     * versehentlich den gesamten Raum.
-                                     */
-
-                                    await saveAvailability(
-
-                                        currentEventId,
-
-                                        activeProfile.id,
-
-                                        currentSlots
-
-                                    );
-
-
-                                    renderGrid();
-
-                                    renderConsole();
-
-                                };
-
-
-                            /* MOUSE DOWN */
-
-                            cell.onmousedown =
-                                e => {
-
-                                    e.preventDefault();
-
-
-                                    isDragging =
-                                        true;
-
-
-                                    dragSelectMode =
-                                        !mySlots.includes(
-                                            slotId
-                                        );
-
-
-                                    handleInteraction(
-                                        dragSelectMode
-                                    );
-
-                                };
-
-
-                            row.appendChild(
-                                cell
-                            );
-
+            DOM.gridEmptyState.classList.add('hidden');
+            DOM.gridContainerWrapper.classList.remove('hidden');
+
+            const ev = roomData.events[currentEventId];
+            DOM.consoleEventName.innerText = ev.name;
+            const days = getDates(ev.start, ev.end);
+            const hours = Array.from({ length: 24 }, (_, i) => i);
+            const activeProfile = getActiveProfile();
+            const mySlots = getMySlots();
+            const allUserIds = Object.keys(roomData.users || {});
+            const totalUsers = allUserIds.length || 1;
+            const colsStyle = `65px repeat(${days.length}, minmax(80px, 1fr))`;
+
+            DOM.calendarHeader.style.gridTemplateColumns = colsStyle;
+            DOM.calendarHeader.innerHTML = '<div class="py-2.5 border-r border-slate-800 text-slate-400 font-mono text-[11px] bg-slate-950 flex items-center justify-center font-bold">Zeit</div>' +
+                days.map(d => `<div class="py-2 px-1 bg-slate-900/90 border-r border-slate-800 font-mono text-xs text-slate-300"><span class="text-emerald-400 font-bold text-[10px] block">${d.colLetter}</span>${d.label}</div>`).join('');
+
+            DOM.calendarBody.innerHTML = '';
+            document.body.onmouseup = () => isDragging = false;
+
+            hours.forEach((hour, rowIndex) => {
+                const row = document.createElement('div');
+                row.className = "grid excel-row";
+                row.style.gridTemplateColumns = colsStyle;
+
+                const timeCell = document.createElement('div');
+                timeCell.className = "py-2 border-r border-b border-slate-800 text-slate-400 font-mono text-[11px] flex items-center justify-between px-2 bg-slate-900 select-none font-semibold";
+                timeCell.innerHTML = `<span class="text-slate-600 text-[9px]">${rowIndex + 1}</span><span>${hour < 10 ? '0' + hour : hour}:00</span>`;
+                row.appendChild(timeCell);
+
+                days.forEach(day => {
+                    const slotId = `${day.iso}_${hour}`;
+                    const isSelectedByMe = mySlots.includes(slotId);
+                    let availableUsersCount = 0;
+
+                    allUserIds.forEach(uid => {
+                        const userAvail = roomData.availability?.[currentEventId]?.[uid] || [];
+                        if (userAvail.includes(slotId)) availableUsersCount++;
+                    });
+
+                    const overlapRatio = totalUsers > 0 ? availableUsersCount / totalUsers : 0;
+                    const cell = document.createElement('div');
+                    cell.className = "excel-cell h-11 cursor-pointer overflow-hidden flex items-center justify-center font-mono text-[11px]";
+                    cell.dataset.slot = slotId;
+
+                    if (showOverlay && availableUsersCount > 0) {
+                        if (overlapRatio === 1) {
+                            cell.className += " perfect-match-glow bg-emerald-500/90 text-slate-950 font-bold";
+                            cell.innerHTML = `<span>★ ${availableUsersCount}/${totalUsers}</span>`;
+                        } else if (overlapRatio >= 0.6) {
+                            cell.style.backgroundColor = "rgba(16, 185, 129, 0.45)";
+                            cell.style.color = "#a7f3d0";
+                            cell.innerHTML = `<span>${availableUsersCount}/${totalUsers}</span>`;
+                        } else if (overlapRatio >= 0.3) {
+                            cell.style.backgroundColor = "rgba(234, 179, 8, 0.25)";
+                            cell.style.color = "#fef08a";
+                            cell.innerHTML = `<span>${availableUsersCount}/${totalUsers}</span>`;
+                        } else {
+                            cell.style.backgroundColor = "rgba(51, 65, 85, 0.3)";
+                            cell.style.color = "#94a3b8";
+                            cell.innerHTML = `<span>${availableUsersCount}/${totalUsers}</span>`;
                         }
-                    );
+                    } else if (isSelectedByMe) {
+                        cell.style.backgroundColor = activeProfile.color;
+                        cell.style.color = "#000";
+                    } else {
+                        cell.style.backgroundColor = "rgba(11, 15, 25, 0.8)";
+                    }
 
+                    cell.onmouseenter = () => { if (isDragging) handleInteraction(dragSelectMode); };
 
-                    DOM.calendarBody.appendChild(
-                        row
-                    );
+                    const handleInteraction = async (forceToggle = null) => {
+                        let currentSlots = getMySlots();
+                        const currentlySelected = currentSlots.includes(slotId);
+                        const shouldSelect = forceToggle !== null ? forceToggle : !currentlySelected;
 
-                }
-            );
+                        if (shouldSelect && !currentlySelected) currentSlots = [...currentSlots, slotId];
+                        else if (!shouldSelect && currentlySelected) currentSlots = currentSlots.filter(s => s !== slotId);
 
+                        if (!roomData.availability) roomData.availability = {};
+                        if (!roomData.availability[currentEventId]) roomData.availability[currentEventId] = {};
+                        roomData.availability[currentEventId][activeProfile.id] = currentSlots;
+
+                        await saveAvailability(currentEventId, activeProfile.id, currentSlots);
+                        renderGrid();
+                        renderConsole();
+                    };
+
+                    cell.onmousedown = e => {
+                        e.preventDefault();
+                        isDragging = true;
+                        dragSelectMode = !mySlots.includes(slotId);
+                        handleInteraction(dragSelectMode);
+                    };
+
+                    row.appendChild(cell);
+                });
+                calendarBody.appendChild(row);
+            });
         }
-
-
-        /* ========================================================
-           CONSOLE / BESTE TERMINE
-        ======================================================== */
 
         function renderConsole() {
-
-            DOM.consoleResults.innerHTML =
-                '';
-
-
-            if (!currentEventId) {
-                return;
-            }
-
-
-            const ev =
-                roomData.events[
-                    currentEventId
-                ];
-
-
-            if (!ev) {
-                return;
-            }
-
-
-            const days =
-                getDates(
-                    ev.start,
-                    ev.end
-                );
-
-
-            const allUserIds =
-                Object.keys(
-                    roomData.users || {}
-                );
-
-
-            const totalUsers =
-                allUserIds.length;
-
-
+            DOM.consoleResults.innerHTML = '';
+            if (!currentEventId) return;
+            const ev = roomData.events[currentEventId];
+            if (!ev) return;
+            const days = getDates(ev.start, ev.end);
+            const allUserIds = Object.keys(roomData.users || {});
+            const totalUsers = allUserIds.length;
             if (totalUsers === 0) {
-
-                DOM.consoleResults.innerHTML =
-                    '<p class="text-slate-500 italic col-span-full text-xs">Noch keine Teilnehmer eingetragen.</p>';
-
-
+                DOM.consoleResults.innerHTML = '<p class="text-slate-500 italic col-span-full text-xs">Noch keine Teilnehmer.</p>';
                 return;
-
             }
-
 
             const slotScores = [];
-
-
-            days.forEach(
-                day => {
-
-                    for (
-                        let h = 0;
-                        h < 24;
-                        h++
-                    ) {
-
-                        const slotId =
-                            `${day.iso}_${h}`;
-
-
-                        let count = 0;
-
-                        let users = [];
-
-
-                        allUserIds.forEach(
-                            uid => {
-
-                                const userAvail =
-
-                                    roomData
-                                        .availability?.[
-                                            currentEventId
-                                        ]?.[
-                                            uid
-                                        ]
-
-                                    || [];
-
-
-                                if (
-                                    userAvail.includes(
-                                        slotId
-                                    )
-                                ) {
-
-                                    count++;
-
-
-                                    if (
-                                        roomData.users[uid]?.name
-                                    ) {
-
-                                        users.push(
-                                            roomData.users[uid].name
-                                        );
-
-                                    }
-
-                                }
-
-                            }
-                        );
-
-
-                        if (count > 0) {
-
-                            slotScores.push({
-
-                                slotId,
-
-                                dayLabel:
-                                    day.fullDateStr,
-
-                                hour:
-                                    h,
-
-                                count,
-
-                                users,
-
-                                ratio:
-                                    count /
-                                    totalUsers
-
-                            });
-
+            days.forEach(day => {
+                for (let h = 0; h < 24; h++) {
+                    const slotId = `${day.iso}_${h}`;
+                    let count = 0, users = [];
+                    allUserIds.forEach(uid => {
+                        const userAvail = roomData.availability?.[currentEventId]?.[uid] || [];
+                        if (userAvail.includes(slotId)) {
+                            count++;
+                            if (roomData.users[uid]?.name) users.push(roomData.users[uid].name);
                         }
-
-                    }
-
+                    });
+                    if (count > 0) slotScores.push({ slotId, dayLabel: day.fullDateStr, hour: h, count, users, ratio: count / totalUsers });
                 }
-            );
+            });
 
-
-            slotScores.sort(
-                (a, b) => {
-
-                    if (
-                        b.count !==
-                        a.count
-                    ) {
-
-                        return (
-                            b.count -
-                            a.count
-                        );
-
-                    }
-
-                    return (
-                        a.hour -
-                        b.hour
-                    );
-
-                }
-            );
-
-
-            const top3 =
-                slotScores.slice(
-                    0,
-                    6
-                );
-
-
-            if (
-                top3.length === 0
-            ) {
-
-                DOM.consoleResults.innerHTML =
-                    '<p class="text-slate-500 italic col-span-full text-xs">Noch keine Zeitfenster markiert.</p>';
-
-
+            slotScores.sort((a, b) => b.count !== a.count ? b.count - a.count : a.hour - b.hour);
+            const top3 = slotScores.slice(0, 6);
+            if (top3.length === 0) {
+                DOM.consoleResults.innerHTML = '<p class="text-slate-500 italic col-span-full text-xs">Noch keine Zeiten markiert.</p>';
                 return;
-
             }
 
-
-            top3.forEach(
-                item => {
-
-                    const isPerfect =
-                        item.ratio === 1;
-
-
-                    const card =
-                        document.createElement(
-                            'div'
-                        );
-
-
-                    card.className =
-                        `p-3 rounded-xl border flex flex-col justify-between ${
-                            isPerfect
-                            ?
-                            'bg-emerald-950/60 border-emerald-500/80 shadow-lg shadow-emerald-500/10'
-                            :
-                            'bg-slate-950 border-slate-800'
-                        }`;
-
-
-                    const userList =
-                        item.users
-                            .map(
-                                escapeHtml
-                            )
-                            .join(', ');
-
-
-                    card.innerHTML = `
-
-                        <div class="flex items-center justify-between mb-1.5">
-
-                            <span class="text-xs font-bold text-white">
-                                ${escapeHtml(item.dayLabel)}
-                            </span>
-
-                            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded ${
-                                isPerfect
-                                ?
-                                'bg-emerald-500 text-slate-950'
-                                :
-                                'bg-slate-800 text-slate-300'
-                            }">
-
-                                ${item.hour}:00 -
-                                ${item.hour + 1}:00 Uhr
-
-                            </span>
-
-                        </div>
-
-
-                        <div class="text-xs text-slate-300 mt-1 flex items-center justify-between">
-
-                            <span>
-
-                                Verfügbar:
-
-                                <b class="${
-                                    isPerfect
-                                    ?
-                                    'text-emerald-400 font-extrabold'
-                                    :
-                                    'text-white'
-                                }">
-
-                                    ${item.count}
-                                    von
-                                    ${totalUsers}
-                                    Personen
-
-                                </b>
-
-                            </span>
-
-
-                            <span class="text-[11px] font-mono text-slate-400">
-
-                                ${Math.round(
-                                    item.ratio * 100
-                                )}%
-
-                            </span>
-
-                        </div>
-
-
-                        <div class="text-[11px] text-slate-400 mt-1 truncate">
-
-                            Teilnehmer:
-                            ${userList}
-
-                        </div>
-
-                    `;
-
-
-                    DOM.consoleResults.appendChild(
-                        card
-                    );
-
-                }
-            );
-
+            top3.forEach(item => {
+                const isPerfect = item.ratio === 1;
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-xl border flex flex-col justify-between ${isPerfect ? 'bg-emerald-950/60 border-emerald-500/80 shadow-lg' : 'bg-slate-950 border-slate-800'}`;
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-xs font-bold text-white">${escapeHtml(item.dayLabel)}</span>
+                        <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded ${isPerfect ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'}">${item.hour}:00 - ${item.hour + 1}:00</span>
+                    </div>
+                    <div class="text-xs text-slate-300 mt-1 flex items-center justify-between">
+                        <span>Verfügbar: <b class="${isPerfect ? 'text-emerald-400 font-extrabold' : 'text-white'}">${item.count} von ${totalUsers}</b></span>
+                        <span class="text-[11px] font-mono text-slate-400">${Math.round(item.ratio * 100)}%</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400 mt-1 truncate">Teilnehmer: ${item.users.map(escapeHtml).join(', ')}</div>
+                `;
+                DOM.consoleResults.appendChild(card);
+            });
         }
 
-
-        /* ========================================================
-           TOAST
-        ======================================================== */
-
-        function showToast(
-            msg
-        ) {
-
-            const toast =
-                document.getElementById(
-                    'toast'
-                );
-
-
-            toast.innerText =
-                msg;
-
-
-            toast.classList.remove(
-                'opacity-0'
-            );
-
-
-            setTimeout(
-                () => {
-
-                    toast.classList.add(
-                        'opacity-0'
-                    );
-
-                },
-                2500
-            );
-
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.remove('opacity-0');
+            setTimeout(() => toast.classList.add('opacity-0'), 2500);
         }
 
+        document.getElementById('btn-copy-link').onclick = async () => {
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                showToast("Link in Zwischenablage kopiert!");
+            } catch (e) {
+                showToast("Link kopieren fehlgeschlagen");
+            }
+        };
 
-        /* ========================================================
-           COPY LINK
-        ======================================================== */
-
-        document.getElementById(
-            'btn-copy-link'
-        ).onclick =
-            async () => {
-
-                try {
-
-                    await navigator.clipboard.writeText(
-                        window.location.href
-                    );
-
-                    showToast(
-                        "Link in die Zwischenablage kopiert!"
-                    );
-
-                } catch (error) {
-
-                    /*
-                     * Fallback für ältere Browser
-                     */
-
-                    const tempInput =
-                        document.createElement(
-                            "input"
-                        );
-
-
-                    tempInput.value =
-                        window.location.href;
-
-
-                    document.body.appendChild(
-                        tempInput
-                    );
-
-
-                    tempInput.select();
-
-
-                    document.execCommand(
-                        "copy"
-                    );
-
-
-                    document.body.removeChild(
-                        tempInput
-                    );
-
-
-                    showToast(
-                        "Link in die Zwischenablage kopiert!"
-                    );
-
-                }
-
-            };
-
-
-        /* ========================================================
-           HTML ESCAPE
-        ======================================================== */
-
-        function escapeHtml(
-            value
-        ) {
-
-            const div =
-                document.createElement(
-                    'div'
-                );
-
-
-            div.textContent =
-                value == null
-                ?
-                ''
-                :
-                String(value);
-
-
+        function escapeHtml(value) {
+            const div = document.createElement('div');
+            div.textContent = value == null ? '' : String(value);
             return div.innerHTML;
-
         }
-
-
-        /* ========================================================
-           INITIALIZE
-        ======================================================== */
 
         initColorPicker();
-
-        /*
-         * Erst Firebase-Verbindung starten.
-         *
-         * Der Snapshot lädt danach die aktuellen
-         * Raumdaten und rendert die Anwendung.
-         */
-
         startFirebaseSync();
-
-
-        /*
-         * Profil lokal initialisieren.
-         *
-         * Das Profil wird anschließend über
-         * syncActiveProfileToRoom() nach Firebase
-         * synchronisiert.
-         */
-
         getActiveProfile();
-
         updateHeaderProfileUI();
-
         renderEvents();
-
         renderGrid();
-
         renderConsole();
 
-
-        /* ========================================================
-           CLEANUP
-        ======================================================== */
-
-        window.addEventListener(
-            'beforeunload',
-            () => {
-
-                if (
-                    firebaseUnsubscribe
-                ) {
-
-                    firebaseUnsubscribe();
-
-                }
-
-            }
-        );
-
+        window.addEventListener('beforeunload', () => { if (firebaseUnsubscribe) firebaseUnsubscribe(); });
     </script>
-
 </body>
 </html>
