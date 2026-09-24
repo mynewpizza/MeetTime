@@ -1,852 +1,561 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terminfinder Pro - Firebase Edition</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #090d16; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        .excel-grid { border-collapse: separate; border-spacing: 0; }
-        .excel-cell { user-select: none; -webkit-user-select: none; transition: all 0.08s ease-in-out; border-right: 1px solid #1e293b; border-bottom: 1px solid #1e293b; position: relative; }
-        .excel-cell:hover { outline: 2px solid #10b981; outline-offset: -2px; z-index: 20; }
-        .perfect-match-glow { box-shadow: inset 0 0 12px rgba(16, 185, 129, 0.6), 0 0 10px rgba(16, 185, 129, 0.3); border: 1px solid #10b981 !important; }
-        .glass-panel { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-        .firebase-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #64748b; transition: background 0.2s ease; }
-        .firebase-status-dot.connected { background: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.6); }
-        .firebase-status-dot.error { background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terminfinder Pro - Firebase Edition</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    .excel-cell { user-select: none; -webkit-user-select: none; transition: all .08s ease-in-out; border-right: 1px solid #1e293b; border-bottom: 1px solid #1e293b; position: relative; }
+    .excel-cell:hover { outline: 2px solid #10b981; outline-offset: -2px; z-index: 20; }
+    .user-dot { width: 8px; height: 8px; border-radius: 50%; border: 1px solid rgba(0,0,0,.5); box-shadow: 0 1px 2px rgba(0,0,0,.6); }
+    .perfect-match-glow { box-shadow: inset 0 0 12px rgba(16,185,129,.6), 0 0 10px rgba(16,185,129,.3); border: 1px solid #10b981 !important; }
+    .glass-panel { background: rgba(15,23,42,.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #64748b; transition: background .2s; }
+    .status-dot.connected { background: #10b981; box-shadow: 0 0 8px rgba(16,185,129,.6); }
+    .status-dot.error { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,.5); }
+    .modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(0,0,0,.8); backdrop-filter: blur(12px); }
+    .modal.hidden { display: none; }
+    .field { width: 100%; background: #020617; border: 1px solid #1e293b; border-radius: .75rem; padding: .6rem 1rem; color: #fff; font-size: .875rem; outline: none; }
+    .field:focus { border-color: #10b981; }
+    .lbl { display: block; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #94a3b8; margin-bottom: .375rem; }
+    .btn-primary { padding: .5rem 1.25rem; background: #059669; color: #020617; font-weight: 700; font-size: .875rem; border-radius: .75rem; box-shadow: 0 10px 15px -3px rgba(5,150,105,.2); transition: background .15s; }
+    .btn-primary:hover { background: #10b981; }
+    .btn-ghost { padding: .375rem .75rem; border-radius: .5rem; background: #1e293b; border: 1px solid #334155; font-size: .75rem; font-weight: 600; color: #e2e8f0; transition: background .15s; }
+    .btn-ghost:hover { background: #334155; }
+</style>
 </head>
+
 <body class="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col font-sans antialiased overflow-x-hidden selection:bg-emerald-500 selection:text-slate-950">
 
-    <!-- TUTORIAL MODAL -->
-    <div id="modal-tutorial" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-        <div class="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-lg">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-2 text-emerald-400 font-bold text-lg">
-                    <span>💡</span><h2>Terminfinder Kurzanleitung</h2>
-                </div>
-                <button id="btn-close-tutorial" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">✕</button>
-            </div>
-            <div class="space-y-4 text-sm text-slate-300">
-                <div class="flex gap-3 items-start bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-                    <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">1</div>
-                    <div><p class="font-semibold text-white">Profile verwalten</p><p class="text-xs text-slate-400 mt-0.5">Erstelle individuelle Profile und wechsle zwischen ihnen.</p></div>
-                </div>
-                <div class="flex gap-3 items-start bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-                    <div class="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">2</div>
-                    <div><p class="font-semibold text-white">Events & Live-Heatmap</p><p class="text-xs text-slate-400 mt-0.5">Markiere Zeiten im Grid. Änderungen werden sofort über Firebase synchronisiert.</p></div>
-                </div>
-            </div>
-            <div class="mt-6 text-right">
-                <button id="btn-tutorial-ok" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-emerald-600/20">Verstanden & Starten</button>
+<!-- TUTORIAL -->
+<div id="modal-tutorial" class="modal hidden">
+    <div class="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-lg">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-emerald-400 font-bold text-lg">💡 Terminfinder Kurzanleitung</h2>
+            <button data-close class="text-slate-400 hover:text-white p-1">✕</button>
+        </div>
+        <div id="tutorial-steps" class="space-y-3 text-sm"></div>
+        <div class="mt-6 text-right"><button data-close class="btn-primary">Verstanden & Starten</button></div>
+    </div>
+</div>
+
+<!-- PROFILE -->
+<div id="modal-profile" class="modal hidden">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl w-full max-w-md">
+        <div class="flex justify-between items-center mb-1">
+            <h2 class="text-2xl font-bold text-white">👤 Wer bist du?</h2>
+            <button data-close class="text-slate-400 hover:text-white p-1">✕</button>
+        </div>
+        <p class="text-xs text-slate-400 mb-4">Profile gehören zum Raum und sind auf allen Geräten sichtbar. Wähle dein Profil aus – auf jedem Gerät einmal.</p>
+        <label class="lbl">Profile in diesem Raum</label>
+        <div id="profiles-list" class="space-y-2 max-h-48 overflow-y-auto pr-1 mb-4"></div>
+        <hr class="border-slate-800 my-4">
+        <h3 id="profile-form-title" class="text-sm font-bold text-slate-200 mb-3">Neues Profil anlegen</h3>
+        <input type="hidden" id="editing-profile-id">
+        <label class="lbl">Name</label>
+        <input id="profile-name" class="field mb-4" placeholder="z. B. Alex">
+        <label class="lbl">Profilfarbe</label>
+        <div id="color-picker" class="grid grid-cols-6 gap-2"></div>
+        <div class="mt-6 flex justify-end gap-3">
+            <button id="btn-cancel-profile-edit" class="hidden px-4 py-2 text-slate-400 hover:text-white text-sm">Abbrechen</button>
+            <button id="btn-save-profile" class="btn-primary">Profil speichern</button>
+        </div>
+    </div>
+</div>
+
+<!-- EVENT -->
+<div id="modal-event" class="modal hidden">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl w-full max-w-md">
+        <div class="flex justify-between items-center mb-1">
+            <h2 id="event-modal-title" class="text-2xl font-bold text-white">Neues Event anlegen</h2>
+            <button data-close class="text-slate-400 hover:text-white p-1">✕</button>
+        </div>
+        <p class="text-sm text-slate-400 mb-6">Name und Zeitraum (max. 31 Tage) festlegen.</p>
+        <input type="hidden" id="editing-event-id">
+        <label class="lbl">Event Name</label>
+        <input id="event-name" class="field mb-4" placeholder="z. B. Sommerurlaub, Strategie-Meeting...">
+        <div class="grid grid-cols-2 gap-3">
+            <div><label class="lbl">Startdatum</label><input type="date" id="event-start" class="field"></div>
+            <div><label class="lbl">Enddatum</label><input type="date" id="event-end" class="field"></div>
+        </div>
+        <div class="mt-8 flex items-center justify-between">
+            <button id="btn-delete-event" class="hidden px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-xl text-xs font-semibold">🗑️ Event löschen</button>
+            <div class="flex gap-3 ml-auto">
+                <button data-close class="px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 text-sm">Abbrechen</button>
+                <button id="btn-save-event" class="btn-primary">Speichern</button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- PROFILE MODAL -->
-    <div id="modal-profile" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl w-full max-w-md">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-white flex items-center gap-2"><span>👤</span>Profile verwalten</h2>
-                <button id="btn-close-profile-modal" class="text-slate-400 hover:text-white p-1">✕</button>
-            </div>
-            <div class="mb-6">
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Gespeicherte Profile</label>
-                <div id="profiles-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
-            </div>
-            <hr class="border-slate-800 my-4">
-            <div class="space-y-4">
-                <h3 id="profile-form-title" class="text-sm font-bold text-slate-200">Neues Profil anlegen</h3>
-                <input type="hidden" id="editing-profile-id" value="">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Name / Bezeichnung</label>
-                    <input type="text" id="profile-name" placeholder="z. B. Alex (Handy) oder Alex (PC)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 text-sm transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Profilfarbe wählen</label>
-                    <div id="color-picker" class="grid grid-cols-6 gap-2"></div>
+<!-- HEADER -->
+<header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/30">📊</div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-tight">Terminfinder</h1>
+                <div class="flex items-center gap-1.5 text-[9px] text-slate-500">
+                    <span id="status-dot" class="status-dot"></span><span id="status-text">Verbinde...</span>
                 </div>
             </div>
-            <div class="mt-6 flex justify-end gap-3">
-                <button id="btn-cancel-profile-edit" class="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-sm transition hidden">Abbrechen</button>
-                <button id="btn-save-profile" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-sm rounded-xl shadow-lg shadow-emerald-600/20 transition">Profil speichern</button>
+        </div>
+        <div class="flex items-center gap-2 sm:gap-3">
+            <button id="btn-open-tutorial" class="btn-ghost" title="Anleitung">💡<span class="hidden sm:inline"> Hilfe</span></button>
+            <button id="btn-copy-link" class="btn-ghost">🔗<span class="hidden sm:inline"> Link teilen</span></button>
+            <button id="btn-manage-profiles" class="btn-ghost flex items-center gap-2">
+                <span id="header-user-color" class="w-3.5 h-3.5 rounded-full border border-slate-500"></span>
+                <span id="header-user-name" class="text-sm text-white">Profil</span>
+                <span class="text-[10px] text-slate-400">▼</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- MAIN -->
+<main class="flex-1 max-w-7xl mx-auto w-full px-4 py-5 flex flex-col gap-4">
+    <div class="glass-panel p-3 rounded-2xl border border-slate-800 shadow-xl flex flex-col gap-3">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="flex-1 flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1 shrink-0">Tabellen:</span>
+                <div id="event-tabs" class="flex items-center gap-1.5"></div>
             </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <button id="btn-edit-current-event" class="btn-ghost hidden">✏️ Event bearbeiten</button>
+                <button data-new-event class="btn-primary !py-1.5 !text-xs sm:!text-sm">+ Neues Event</button>
+            </div>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 flex justify-end">
+            <label class="flex items-center cursor-pointer gap-2 text-xs font-semibold text-slate-300">
+                <span class="relative">
+                    <input type="checkbox" id="toggle-overlay" class="sr-only peer" checked>
+                    <span class="block w-8 h-4 rounded-full bg-slate-800 border border-slate-700 transition peer-checked:bg-emerald-600"></span>
+                    <span class="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full transition peer-checked:translate-x-3.5"></span>
+                </span>
+                Überschneidungen (Heatmap)
+            </label>
         </div>
     </div>
 
-    <!-- EVENT MODAL -->
-    <div id="modal-event" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl w-full max-w-md">
-            <div class="flex justify-between items-center mb-1">
-                <h2 id="event-modal-title" class="text-2xl font-bold text-white">Neues Event anlegen</h2>
-                <button id="btn-close-event-modal" class="text-slate-400 hover:text-white p-1">✕</button>
-            </div>
-            <p id="event-modal-subtitle" class="text-sm text-slate-400 mb-6">Bestimme Name und Zeitraum im Kalender.</p>
-            <input type="hidden" id="editing-event-id" value="">
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Event Name</label>
-                    <input type="text" id="event-name" placeholder="z. B. Team Meeting" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition text-sm">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Startdatum</label>
-                        <input type="date" id="event-start" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Enddatum</label>
-                        <input type="date" id="event-end" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm transition">
-                    </div>
-                </div>
-            </div>
-            <div class="mt-8 flex items-center justify-between">
-                <button id="btn-delete-event" class="px-4 py-2 bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 rounded-xl text-xs font-semibold transition hidden">🗑️ Event löschen</button>
-                <div class="flex gap-3 ml-auto">
-                    <button id="btn-cancel-event" class="px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 text-sm transition">Abbrechen</button>
-                    <button id="btn-save-event" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-sm rounded-xl shadow-lg shadow-emerald-600/20 transition">Speichern</button>
-                </div>
+    <div class="flex-1 bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden relative min-h-[480px] flex flex-col">
+        <div id="grid-empty-state" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/95 z-20 p-6 text-center">
+            <span class="text-5xl mb-4">📊</span>
+            <h3 class="text-xl font-bold text-white mb-2">Kein Event ausgewählt</h3>
+            <p class="text-slate-400 text-sm mb-6 max-w-sm">Erstelle eine neue Event-Tabelle mit Start- und Enddatum, um Termine einzutragen.</p>
+            <button data-new-event class="btn-primary">+ Neues Event erstellen</button>
+        </div>
+        <div id="grid-wrapper" class="overflow-x-auto flex-1 p-3 hidden">
+            <div class="min-w-max border border-slate-800 rounded-lg overflow-hidden bg-slate-950">
+                <div id="calendar-header" class="grid text-center font-bold text-xs select-none bg-slate-900 border-b border-slate-800"></div>
+                <div id="calendar-body"></div>
             </div>
         </div>
     </div>
+</main>
 
-    <!-- HEADER -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/30 text-emerald-400 font-bold">📊</div>
-                <div>
-                    <h1 class="text-lg font-bold text-white tracking-tight">Terminfinder</h1>
-                    <div class="flex items-center gap-1.5 text-[9px] text-slate-500">
-                        <span id="firebase-status-dot" class="firebase-status-dot"></span>
-                        <span id="firebase-status-text">Verbinde...</span>
-                    </div>
-                </div>
-            </div>
-            <div class="flex items-center gap-2 sm:gap-3">
-                <button id="btn-open-tutorial" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1.5 text-slate-300"><span>💡</span><span class="hidden sm:inline">Hilfe</span></button>
-                <button id="btn-copy-link" class="text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex items-center gap-1.5 text-slate-200"><span class="text-emerald-400">🔗</span><span class="hidden sm:inline">Link teilen</span></button>
-                <button id="btn-manage-profiles" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 transition">
-                    <div id="header-user-color" class="w-3.5 h-3.5 rounded-full border border-slate-500 shadow-sm"></div>
-                    <span id="header-user-name" class="text-xs sm:text-sm font-semibold text-white">Profil</span>
-                    <span class="text-[10px] text-slate-400">▼</span>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- MAIN -->
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-5 flex flex-col gap-4">
-        <!-- TOOLBAR -->
-        <div class="glass-panel p-3 rounded-2xl border border-slate-800 shadow-xl flex flex-col gap-3">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                <div class="flex-1 flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1 shrink-0">Tabellen:</span>
-                    <div id="event-tabs" class="flex items-center gap-1.5"></div>
-                </div>
-                <div class="flex items-center gap-2 shrink-0">
-                    <button id="btn-edit-current-event" class="hidden items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition">✏️ Event bearbeiten</button>
-                    <button id="btn-new-event" class="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 text-xs sm:text-sm font-bold rounded-xl transition shadow-lg shadow-emerald-600/20"><span>+</span>Neues Event</button>
-                </div>
-            </div>
-            <!-- OVERLAY CONTROL -->
-            <div class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 flex items-center justify-end">
-                <label class="flex items-center cursor-pointer gap-2 text-xs font-semibold text-slate-300">
-                    <div class="relative">
-                        <input type="checkbox" id="toggle-overlay" class="sr-only">
-                        <div class="block bg-slate-800 w-8 h-4 rounded-full transition border border-slate-700" id="toggle-bg"></div>
-                        <div class="dot absolute left-0.5 top-0.5 bg-white w-3 h-3 rounded-full transition transform" id="toggle-dot"></div>
-                    </div>
-                    <span>Überschneidungen (Heatmap)</span>
-                </label>
-            </div>
-        </div>
-
-        <!-- GRID CONTAINER -->
-        <div class="flex-1 bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden relative min-h-[480px] flex flex-col">
-            <div id="grid-empty-state" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/95 z-20 p-6 text-center">
-                <span class="text-5xl mb-4">📊</span>
-                <h3 class="text-xl font-bold text-white mb-2">Kein Event ausgewählt</h3>
-                <p class="text-slate-400 text-sm mb-6 max-w-sm">Erstelle eine neue Event-Tabelle mit Start- und Enddatum, um Termine einzutragen.</p>
-                <button id="btn-empty-create" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-slate-950 font-bold text-sm transition shadow-lg shadow-emerald-600/20">+ Neues Event erstellen</button>
-            </div>
-            <div class="overflow-x-auto flex-1 p-3 hidden custom-scrollbar" id="grid-container-wrapper">
-                <div id="calendar-container" class="min-w-max border border-slate-800 rounded-lg overflow-hidden excel-grid bg-slate-950">
-                    <div id="calendar-header" class="grid text-center font-bold text-xs select-none bg-slate-900 border-b border-slate-800"></div>
-                    <div id="calendar-body" class="divide-y divide-slate-800/60"></div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- CONSOLE DRAWER -->
-    <div class="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 border-t border-slate-800 backdrop-blur-md shadow-[0_-10px_30px_rgba(0,0,0,0.8)] transform transition-transform duration-300 translate-y-full" id="console-drawer">
-        <button id="btn-toggle-console" class="absolute -top-9 left-1/2 transform -translate-x-1/2 bg-slate-900 border border-b-0 border-slate-800 px-5 py-1.5 rounded-t-xl text-xs font-bold text-emerald-400 flex items-center gap-2 hover:bg-slate-800 transition">
-            <span id="console-icon">▲</span> Termin-Überschneidungen
-        </button>
-        <div class="max-w-7xl mx-auto px-4 py-4 max-h-[40vh] overflow-y-auto">
-            <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
-                <h3 class="font-bold text-white text-sm flex items-center gap-2"><span>Auswertung für:</span><span id="console-event-name" class="text-emerald-400">...</span></h3>
-            </div>
-            <div id="console-results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm"></div>
-        </div>
+<!-- CONSOLE -->
+<div id="console-drawer" class="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 border-t border-slate-800 backdrop-blur-md shadow-[0_-10px_30px_rgba(0,0,0,0.8)] transition-transform duration-300 translate-y-full">
+    <button id="btn-toggle-console" class="absolute -top-9 left-1/2 -translate-x-1/2 bg-slate-900 border border-b-0 border-slate-800 px-5 py-1.5 rounded-t-xl text-xs font-bold text-emerald-400 hover:bg-slate-800">
+        <span id="console-icon">▲</span> Termin-Überschneidungen
+    </button>
+    <div class="max-w-7xl mx-auto px-4 py-4 max-h-[40vh] overflow-y-auto">
+        <h3 class="font-bold text-white text-sm mb-3 border-b border-slate-800 pb-2">Auswertung für: <span id="console-event-name" class="text-emerald-400">...</span></h3>
+        <div id="console-results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm"></div>
     </div>
+</div>
 
-    <!-- TOAST -->
-    <div id="toast" class="fixed bottom-16 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-slate-950 px-4 py-2 rounded-xl shadow-2xl font-bold text-sm opacity-0 pointer-events-none transition-opacity duration-300 z-50">Aktion erfolgreich!</div>
+<div id="toast" class="fixed bottom-16 left-1/2 -translate-x-1/2 bg-emerald-500 text-slate-950 px-4 py-2 rounded-xl shadow-2xl font-bold text-sm opacity-0 pointer-events-none transition-opacity duration-300 z-50"></div>
 
-    <!-- FIREBASE & APP SCRIPT -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, updateDoc, deleteField, onSnapshot } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot, deleteField, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwL4VAhz83s3hn5qmNGv295ir2hSB6xL0",
-            authDomain: "meettime-d9ad6.firebaseapp.com",
-            projectId: "meettime-d9ad6",
-            storageBucket: "meettime-d9ad6.firebasestorage.app",
-            messagingSenderId: "217432895903",
-            appId: "1:217432895903:web:9f287ce8a5e07b40eecdaa"
-        };
+const db = getFirestore(initializeApp({
+    apiKey: "AIzaSyAwL4VAhz83s3hn5qmNGv295ir2hSB6xL0",
+    authDomain: "meettime-d9ad6.firebaseapp.com",
+    projectId: "meettime-d9ad6",
+    storageBucket: "meettime-d9ad6.firebasestorage.app",
+    messagingSenderId: "217432895903",
+    appId: "1:217432895903:web:9f287ce8a5e07b40eecdaa"
+}));
 
-        let db;
-        try {
-            db = getFirestore(initializeApp(firebaseConfig));
-        } catch (error) {
-            console.error("Firebase Initialisierung fehlgeschlagen:", error);
+const PALETTE = ['#0072B2', '#E69F00', '#009E73', '#D55E00', '#CC79A7', '#56B4E9', '#F0E442', '#8B5CF6', '#E31A1C', '#00A6A6', '#6A3D9A', '#4D4D4D'];
+
+/* ---------- Helpers ---------- */
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
+const rid = p => `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+const isoDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const ls = {
+    get: k => { try { return localStorage.getItem(k); } catch { return null; } },
+    set: (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} }
+};
+const openModal = id => $(id).classList.remove('hidden');
+const closeModal = id => $(id).classList.add('hidden');
+document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.closest('.modal').classList.add('hidden'));
+
+let toastTimer;
+function toast(msg) {
+    $('toast').innerText = msg;
+    $('toast').classList.remove('opacity-0');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $('toast').classList.add('opacity-0'), 2500);
+}
+
+function setStatus(state, text) {
+    $('status-dot').className = 'status-dot ' + state;
+    $('status-text').innerText = text;
+}
+
+/* ---------- Raum ----------
+   Alle Daten (Profile, Events, Verfügbarkeiten) liegen in EINEM Firestore-Dokument
+   rooms/{roomId}. Wer denselben Link (#room=...) öffnet, sieht dieselben Daten.
+   Lokal gespeichert wird nur, WELCHES Profil man auf diesem Gerät ist. */
+let roomId = new URLSearchParams(location.hash.slice(1)).get('room')
+    || ls.get('tf_last_room')
+    || 'room-' + Math.random().toString(36).slice(2, 10);
+history.replaceState(null, '', '#room=' + roomId);
+ls.set('tf_last_room', roomId);
+window.addEventListener('hashchange', () => location.reload());
+
+const roomRef = doc(db, 'rooms', roomId);
+const ACTIVE_KEY = 'tf_active_' + roomId;
+
+let room = { users: {}, events: {}, availability: {} };
+let activeId = ls.get(ACTIVE_KEY);
+let currentEventId = null, isDragging = false, dragSelect = true, selectedColor = PALETTE[0], firstSnapshot = true;
+
+const me = () => room.users[activeId] ? { id: activeId, ...room.users[activeId] } : null;
+const setActive = id => { activeId = id; ls.set(ACTIVE_KEY, id); };
+
+// setDoc + merge legt das Dokument bei Bedarf an und ändert nur die übergebenen Felder.
+const save = data => setDoc(roomRef, data, { merge: true }).catch(err => {
+    console.error(err);
+    toast(err.code === 'permission-denied' ? 'Keine Schreibrechte – Firestore-Regeln prüfen' : 'Speichern fehlgeschlagen');
+});
+
+onSnapshot(roomRef, snap => {
+    const d = snap.data() || {};
+    room = { users: d.users || {}, events: d.events || {}, availability: d.availability || {} };
+    setStatus('connected', 'Live verbunden');
+    renderAll();
+    if (firstSnapshot && !me()) openProfileModal();
+    firstSnapshot = false;
+}, err => {
+    console.error(err);
+    setStatus('error', err.code === 'permission-denied' ? 'Keine Berechtigung (Regeln)' : 'Verbindungsfehler');
+});
+
+/* ---------- Profile ---------- */
+function renderHeader() {
+    const u = me();
+    $('header-user-name').innerText = u ? u.name : 'Profil wählen';
+    $('header-user-color').style.backgroundColor = u ? u.color : 'transparent';
+}
+
+function renderColorPicker() {
+    $('color-picker').innerHTML = PALETTE.map(c => `
+        <button type="button" data-color="${c}" style="background:${c}"
+            class="w-8 h-8 rounded-full border-2 hover:scale-110 transition flex items-center justify-center ${c === selectedColor ? 'border-white scale-110 ring-2 ring-white/40' : 'border-transparent'}">
+            ${c === selectedColor ? '<span class="text-slate-950 font-bold text-xs">✓</span>' : ''}
+        </button>`).join('');
+}
+$('color-picker').onclick = e => {
+    const b = e.target.closest('[data-color]');
+    if (b) { selectedColor = b.dataset.color; renderColorPicker(); }
+};
+
+function renderProfiles() {
+    const ids = Object.keys(room.users).sort((a, b) => room.users[a].name.localeCompare(room.users[b].name));
+    $('profiles-list').innerHTML = ids.length ? ids.map(id => {
+        const u = room.users[id], cur = id === activeId;
+        return `<div class="flex items-center justify-between p-2.5 rounded-xl border ${cur ? 'bg-emerald-950/40 border-emerald-500/50' : 'bg-slate-950 border-slate-800 hover:border-slate-700'}">
+            <div data-switch="${id}" class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0">
+                <span class="w-4 h-4 rounded-full shrink-0" style="background:${esc(u.color)}"></span>
+                <span class="font-bold text-xs text-white truncate">${esc(u.name)}</span>
+                ${cur ? '<span class="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-bold uppercase">Ich</span>' : ''}
+            </div>
+            <button data-edit="${id}" class="text-slate-400 hover:text-white p-1 text-xs" title="Bearbeiten">✏️</button>
+            <button data-delete="${id}" class="text-slate-400 hover:text-rose-400 p-1 text-xs" title="Löschen">🗑️</button>
+        </div>`;
+    }).join('') : '<p class="text-xs text-slate-500 italic">Noch keine Profile in diesem Raum – leg unten eins an.</p>';
+}
+$('profiles-list').onclick = e => {
+    const t = e.target.closest('[data-switch],[data-edit],[data-delete]');
+    if (!t) return;
+    if (t.dataset.switch) { setActive(t.dataset.switch); renderAll(); closeModal('modal-profile'); toast('Profil gewechselt!'); }
+    if (t.dataset.edit) editProfile(t.dataset.edit);
+    if (t.dataset.delete) deleteProfile(t.dataset.delete);
+};
+
+function openProfileModal() { resetProfileForm(); renderProfiles(); openModal('modal-profile'); }
+
+function resetProfileForm() {
+    $('editing-profile-id').value = '';
+    $('profile-name').value = '';
+    $('profile-form-title').innerText = 'Neues Profil anlegen';
+    $('btn-cancel-profile-edit').classList.add('hidden');
+    // Freie Farbe vorschlagen
+    const used = Object.values(room.users).map(u => u.color);
+    selectedColor = PALETTE.find(c => !used.includes(c)) || PALETTE[0];
+    renderColorPicker();
+}
+
+function editProfile(id) {
+    const u = room.users[id];
+    $('editing-profile-id').value = id;
+    $('profile-name').value = u.name;
+    $('profile-form-title').innerText = 'Profil bearbeiten';
+    $('btn-cancel-profile-edit').classList.remove('hidden');
+    selectedColor = u.color;
+    renderColorPicker();
+}
+
+function deleteProfile(id) {
+    if (!confirm(`Profil "${room.users[id].name}" für ALLE löschen? Seine Einträge gehen verloren.`)) return;
+    const availability = {};
+    for (const eId in room.availability) {
+        availability[eId] = { [id]: deleteField() };
+        delete room.availability[eId][id];
+    }
+    delete room.users[id];
+    save({ users: { [id]: deleteField() }, availability });
+    if (activeId === id) setActive(null);
+    renderAll();
+    toast('Profil gelöscht');
+}
+
+$('btn-save-profile').onclick = () => {
+    const name = $('profile-name').value.trim();
+    if (!name) return toast('Bitte einen Namen eingeben.');
+    const editId = $('editing-profile-id').value;
+    const id = editId || rid('prof');
+    room.users[id] = { name, color: selectedColor };
+    save({ users: { [id]: room.users[id] } });
+    if (!editId) setActive(id);
+    resetProfileForm();
+    renderAll();
+    toast('Profil gespeichert!');
+};
+$('btn-cancel-profile-edit').onclick = resetProfileForm;
+$('btn-manage-profiles').onclick = openProfileModal;
+
+/* ---------- Events ---------- */
+function openEventModal(id = null) {
+    const ev = id && room.events[id];
+    const today = new Date(), later = new Date();
+    later.setDate(today.getDate() + 3);
+    $('editing-event-id').value = ev ? id : '';
+    $('event-modal-title').innerText = ev ? 'Event bearbeiten' : 'Neues Event anlegen';
+    $('event-name').value = ev ? ev.name : '';
+    $('event-start').value = ev ? ev.start : isoDate(today);
+    $('event-end').value = ev ? ev.end : isoDate(later);
+    $('btn-delete-event').classList.toggle('hidden', !ev);
+    openModal('modal-event');
+}
+document.querySelectorAll('[data-new-event]').forEach(b => b.onclick = () => openEventModal());
+$('btn-edit-current-event').onclick = () => currentEventId && openEventModal(currentEventId);
+
+$('btn-save-event').onclick = () => {
+    const name = $('event-name').value.trim(), start = $('event-start').value, end = $('event-end').value;
+    if (!name || !start || !end) return toast('Bitte alle Felder ausfüllen');
+    if (start > end) return toast('Startdatum muss vor Enddatum liegen');
+    const id = $('editing-event-id').value || rid('evt');
+    room.events[id] = { name, start, end };
+    currentEventId = id;
+    save({ events: { [id]: room.events[id] } });
+    closeModal('modal-event');
+    renderAll();
+    toast($('editing-event-id').value ? 'Event aktualisiert!' : 'Neues Event erstellt!');
+};
+
+$('btn-delete-event').onclick = () => {
+    const id = $('editing-event-id').value;
+    if (!id || !confirm(`Event "${room.events[id]?.name}" für alle löschen?`)) return;
+    delete room.events[id];
+    delete room.availability[id];
+    save({ events: { [id]: deleteField() }, availability: { [id]: deleteField() } });
+    currentEventId = null;
+    closeModal('modal-event');
+    renderAll();
+    toast('Event gelöscht.');
+};
+
+function renderEvents() {
+    const ids = Object.keys(room.events).sort((a, b) => room.events[a].start.localeCompare(room.events[b].start));
+    if (!room.events[currentEventId]) currentEventId = ids[0] || null;
+    $('btn-edit-current-event').classList.toggle('hidden', !currentEventId);
+    $('event-tabs').innerHTML = ids.map(id => `
+        <button data-event="${id}" class="px-3 py-1 rounded-lg text-xs font-mono transition whitespace-nowrap border ${id === currentEventId
+            ? 'bg-emerald-600 text-slate-950 font-bold border-emerald-500'
+            : 'bg-slate-950 text-slate-400 hover:bg-slate-800 hover:text-white border-slate-800'}">📋 ${esc(room.events[id].name)}</button>`).join('');
+}
+$('event-tabs').onclick = e => {
+    const b = e.target.closest('[data-event]');
+    if (b) { currentEventId = b.dataset.event; renderAll(); }
+};
+
+/* ---------- Grid & Heatmap ---------- */
+function getDays(start, end) {
+    const days = [];
+    for (let d = new Date(start + 'T00:00:00'), i = 0; d <= new Date(end + 'T00:00:00') && i < 31; d.setDate(d.getDate() + 1), i++) {
+        const wd = d.toLocaleDateString('de-DE', { weekday: 'short' });
+        const dm = d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+        days.push({ iso: isoDate(d), wd, dm, letter: String.fromCharCode(65 + i % 26) });
+    }
+    return days;
+}
+
+// slotId -> Liste der Namen, die dort können (nur existierende Profile zählen)
+function slotMap() {
+    const map = {};
+    for (const [uid, slots] of Object.entries(room.availability[currentEventId] || {}))
+        if (room.users[uid]) for (const s of slots) (map[s] ||= []).push(room.users[uid].name);
+    return map;
+}
+
+const mySlots = () => room.availability[currentEventId]?.[activeId] || [];
+
+function renderGrid() {
+    const ev = room.events[currentEventId];
+    $('grid-empty-state').classList.toggle('hidden', !!ev);
+    $('grid-wrapper').classList.toggle('hidden', !ev);
+    $('console-event-name').innerText = ev ? ev.name : '...';
+    if (!ev) return;
+
+    const days = getDays(ev.start, ev.end);
+    const map = slotMap(), mine = new Set(mySlots()), u = me();
+    const total = Object.keys(room.users).length || 1;
+    const overlay = $('toggle-overlay').checked;
+    const cols = `65px repeat(${days.length}, minmax(80px, 1fr))`;
+
+    $('calendar-header').style.gridTemplateColumns = cols;
+    $('calendar-header').innerHTML = '<div class="py-2.5 border-r border-slate-800 text-slate-400 font-mono text-[11px] flex items-center justify-center">Zeit</div>'
+        + days.map(d => `<div class="py-2 px-1 border-r border-slate-800 font-mono text-xs text-slate-300">
+            <span class="text-emerald-400 text-[10px] block">${d.letter}</span>${d.wd}<br><span class="text-[10px] text-slate-400 font-normal">${d.dm}</span></div>`).join('');
+
+    let html = '';
+    for (let h = 0; h < 24; h++) {
+        html += `<div class="grid" style="grid-template-columns:${cols}">
+            <div class="py-2 border-r border-b border-slate-800 text-slate-400 font-mono text-[11px] flex items-center justify-between px-2 bg-slate-900 select-none font-semibold">
+                <span class="text-slate-600 text-[9px]">${h + 1}</span><span>${String(h).padStart(2, '0')}:00</span></div>`;
+        for (const d of days) {
+            const slot = `${d.iso}_${h}`, names = map[slot] || [], n = names.length, isMine = mine.has(slot);
+            let cls = '', style = 'background:rgba(11,15,25,.8)', txt = '';
+            if (overlay && n) {
+                const r = n / total;
+                txt = `${r === 1 ? '★ ' : ''}${n}/${total}`;
+                if (r === 1) { cls = 'perfect-match-glow bg-emerald-500/90 text-slate-950 font-bold'; style = ''; }
+                else style = r >= .6 ? 'background:rgba(16,185,129,.45);color:#a7f3d0'
+                          : r >= .3 ? 'background:rgba(234,179,8,.25);color:#fef08a'
+                          : 'background:rgba(51,65,85,.3);color:#94a3b8';
+            } else if (isMine && u) style = `background:${esc(u.color)}`;
+            const dot = overlay && isMine && u ? `<span class="user-dot absolute top-1 right-1" style="background:${esc(u.color)}"></span>` : '';
+            html += `<div data-slot="${slot}" title="${esc(names.join(', '))}" style="${style}"
+                class="excel-cell h-11 cursor-pointer flex items-center justify-center font-mono text-[11px] ${cls}">${txt}${dot}</div>`;
         }
+        html += '</div>';
+    }
+    $('calendar-body').innerHTML = html;
+}
 
-        const PALETTE = [
-            { hex: '#0072B2', name: 'Blau' }, { hex: '#E69F00', name: 'Orange' }, { hex: '#009E73', name: 'Grün' },
-            { hex: '#D55E00', name: 'Dunkelorange' }, { hex: '#CC79A7', name: 'Pink' }, { hex: '#56B4E9', name: 'Hellblau' },
-            { hex: '#F0E442', name: 'Gelb' }, { hex: '#8B5CF6', name: 'Violett' }, { hex: '#E31A1C', name: 'Rot' },
-            { hex: '#00A6A6', name: 'Türkis' }, { hex: '#6A3D9A', name: 'Dunkelviolett' }, { hex: '#4D4D4D', name: 'Grau' }
-        ];
+// Einzelnen Slot setzen. arrayUnion/arrayRemove verhindern, dass sich zwei Geräte gegenseitig überschreiben.
+function setSlot(slot, select) {
+    const u = me();
+    if (!u) { isDragging = false; openProfileModal(); return toast('Bitte zuerst dein Profil wählen oder anlegen.'); }
+    const evAv = room.availability[currentEventId] ||= {};
+    const slots = evAv[u.id] || [];
+    if (select === slots.includes(slot)) return;
+    evAv[u.id] = select ? [...slots, slot] : slots.filter(s => s !== slot);
+    save({ availability: { [currentEventId]: { [u.id]: select ? arrayUnion(slot) : arrayRemove(slot) } } });
+    renderGrid();
+    renderConsole();
+}
 
-        let roomId = window.location.hash.replace('#room=', '');
-        if (!roomId) {
-            roomId = 'room-' + Math.random().toString(36).substring(2, 10);
-            window.location.hash = `room=${roomId}`;
+// Maus: klicken & ziehen. Touch: antippen (Wischen scrollt weiterhin).
+$('calendar-body').addEventListener('mousedown', e => {
+    const c = e.target.closest('[data-slot]');
+    if (!c) return;
+    e.preventDefault();
+    isDragging = true;
+    dragSelect = !mySlots().includes(c.dataset.slot);
+    setSlot(c.dataset.slot, dragSelect);
+});
+$('calendar-body').addEventListener('mouseover', e => {
+    const c = isDragging && e.target.closest('[data-slot]');
+    if (c) setSlot(c.dataset.slot, dragSelect);
+});
+document.addEventListener('mouseup', () => isDragging = false);
+$('toggle-overlay').onchange = renderGrid;
+
+/* ---------- Auswertung ---------- */
+function renderConsole() {
+    const ev = room.events[currentEventId], total = Object.keys(room.users).length;
+    const empty = t => $('console-results').innerHTML = `<p class="text-slate-500 italic col-span-full text-xs">${t}</p>`;
+    if (!ev) return empty('');
+    if (!total) return empty('Noch keine Teilnehmer eingetragen.');
+
+    const map = slotMap(), best = [];
+    for (const d of getDays(ev.start, ev.end))
+        for (let h = 0; h < 24; h++) {
+            const users = map[`${d.iso}_${h}`];
+            if (users) best.push({ label: `${d.wd}, ${d.dm}`, h, users, r: users.length / total });
         }
-
-        let roomData = { users: {}, events: {}, availability: {} };
-        let currentEventId = null;
-        let showOverlay = true;
-        let isConsoleOpen = false;
-        let isDragging = false;
-        let dragSelectMode = true;
-        let selectedColor = PALETTE[0].hex;
-        let firebaseUnsubscribe = null;
-        let firebaseReady = false;
-
-        const DOM = {
-            profileModal: document.getElementById('modal-profile'),
-            eventModal: document.getElementById('modal-event'),
-            tutorialModal: document.getElementById('modal-tutorial'),
-            profileName: document.getElementById('profile-name'),
-            profilesList: document.getElementById('profiles-list'),
-            profileFormTitle: document.getElementById('profile-form-title'),
-            editingProfileId: document.getElementById('editing-profile-id'),
-            btnCancelProfileEdit: document.getElementById('btn-cancel-profile-edit'),
-            colorPicker: document.getElementById('color-picker'),
-            btnSaveProfile: document.getElementById('btn-save-profile'),
-            headerUserName: document.getElementById('header-user-name'),
-            headerUserColor: document.getElementById('header-user-color'),
-            eventTabs: document.getElementById('event-tabs'),
-            btnEditCurrentEvent: document.getElementById('btn-edit-current-event'),
-            gridEmptyState: document.getElementById('grid-empty-state'),
-            gridContainerWrapper: document.getElementById('grid-container-wrapper'),
-            calendarHeader: document.getElementById('calendar-header'),
-            calendarBody: document.getElementById('calendar-body'),
-            consoleDrawer: document.getElementById('console-drawer'),
-            consoleResults: document.getElementById('console-results'),
-            consoleEventName: document.getElementById('console-event-name'),
-            firebaseStatusDot: document.getElementById('firebase-status-dot'),
-            firebaseStatusText: document.getElementById('firebase-status-text')
-        };
-
-        function setFirebaseStatus(status, text) {
-            DOM.firebaseStatusDot.classList.remove('connected', 'error');
-            if (status === 'connected') DOM.firebaseStatusDot.classList.add('connected');
-            if (status === 'error') DOM.firebaseStatusDot.classList.add('error');
-            DOM.firebaseStatusText.innerText = text;
-        }
-
-        function getRoomRef() {
-            if (!db) throw new Error("Firebase nicht initialisiert.");
-            return doc(db, 'rooms', roomId);
-        }
-
-        async function createEmptyRoomIfNeeded() {
-            try {
-                await setDoc(getRoomRef(), { users: {}, events: {}, availability: {} }, { merge: true });
-            } catch (error) {
-                setFirebaseStatus('error', 'Firebase Fehler');
-            }
-        }
-
-        function startFirebaseSync() {
-            if (!db) { setFirebaseStatus('error', 'Nicht konfiguriert'); return; }
-            setFirebaseStatus('connecting', 'Verbinde...');
-            try {
-                firebaseUnsubscribe = onSnapshot(getRoomRef(), (snapshot) => {
-                    if (!snapshot.exists()) {
-                        roomData = { users: {}, events: {}, availability: {} };
-                        createEmptyRoomIfNeeded();
-                    } else {
-                        roomData = snapshot.data();
-                    }
-                    roomData.users = roomData.users || {};
-                    roomData.events = roomData.events || {};
-                    roomData.availability = roomData.availability || {};
-                    firebaseReady = true;
-                    setFirebaseStatus('connected', 'Live verbunden');
-                    renderEvents();
-                    renderGrid();
-                    renderConsole();
-                }, (error) => {
-                    firebaseReady = false;
-                    setFirebaseStatus('error', 'Verbindungsfehler');
-                });
-            } catch (error) {
-                setFirebaseStatus('error', 'Firebase Fehler');
-            }
-        }
-
-        async function saveUserToRoom(profile) {
-            if (!firebaseReady) return;
-            try {
-                await updateDoc(getRoomRef(), { [`users.${profile.id}`]: { name: profile.name, color: profile.color } });
-            } catch (error) { console.error(error); }
-        }
-
-        async function saveEventToRoom(eventId, event) {
-            if (!firebaseReady) return;
-            try { await updateDoc(getRoomRef(), { [`events.${eventId}`]: event }); } catch (error) { showToast("Speicherfehler"); }
-        }
-
-        async function deleteEventFromRoom(eventId) {
-            if (!firebaseReady) return;
-            try { await updateDoc(getRoomRef(), { [`events.${eventId}`]: deleteField(), [`availability.${eventId}`]: deleteField() }); } catch (error) { showToast("Löschfehler"); }
-        }
-
-        async function saveAvailability(eventId, profileId, slots) {
-            if (!firebaseReady) return;
-            try { await updateDoc(getRoomRef(), { [`availability.${eventId}.${profileId}`]: slots }); } catch (error) { showToast("Speichern fehlgeschlagen"); }
-        }
-
-        function getStoredProfiles() {
-            try { const p = localStorage.getItem('tf_profiles'); return p ? JSON.parse(p) : []; } catch (e) { return []; }
-        }
-
-        function saveStoredProfiles(profiles) {
-            localStorage.setItem('tf_profiles', JSON.stringify(profiles));
-        }
-
-        let activeProfileId = localStorage.getItem('tf_active_profile_id') || null;
-
-        function getActiveProfile() {
-            const profiles = getStoredProfiles();
-            if (profiles.length === 0) {
-                const def = { id: 'prof-' + Date.now(), name: 'Mein Profil', color: PALETTE[0].hex };
-                saveStoredProfiles([def]);
-                localStorage.setItem('tf_active_profile_id', def.id);
-                activeProfileId = def.id;
-                return def;
-            }
-            let active = profiles.find(p => p.id === activeProfileId);
-            if (!active) {
-                active = profiles[0];
-                activeProfileId = active.id;
-                localStorage.setItem('tf_active_profile_id', active.id);
-            }
-            return active;
-        }
-
-        function syncActiveProfileToRoom() {
-            const active = getActiveProfile();
-            if (!roomData.users) roomData.users = {};
-            roomData.users[active.id] = { name: active.name, color: active.color };
-            saveUserToRoom(active);
-        }
-
-        function initColorPicker() {
-            DOM.colorPicker.innerHTML = '';
-            PALETTE.forEach(item => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                const isSelected = item.hex === selectedColor;
-                btn.className = `w-8 h-8 rounded-full border-2 transition-transform transform hover:scale-110 flex items-center justify-center ${isSelected ? 'border-white scale-110 shadow-lg ring-2 ring-white/40' : 'border-transparent'}`;
-                btn.style.backgroundColor = item.hex;
-                btn.title = item.name;
-                if (isSelected) btn.innerHTML = '<span class="text-slate-950 font-bold text-xs">✓</span>';
-                btn.onclick = () => { selectedColor = item.hex; initColorPicker(); };
-                DOM.colorPicker.appendChild(btn);
-            });
-        }
-
-        function renderProfilesList() {
-            DOM.profilesList.innerHTML = '';
-            const profiles = getStoredProfiles();
-            profiles.forEach(p => {
-                const isCurrent = p.id === activeProfileId;
-                const div = document.createElement('div');
-                div.className = `flex items-center justify-between p-2.5 rounded-xl border transition ${isCurrent ? 'bg-emerald-950/40 border-emerald-500/50' : 'bg-slate-950 border-slate-800 hover:border-slate-700'}`;
-                div.innerHTML = `
-                    <div class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0" data-switch-profile="${p.id}">
-                        <div class="w-4 h-4 rounded-full shrink-0" style="background-color: ${escapeHtml(p.color)}"></div>
-                        <span class="font-bold text-xs text-white truncate">${escapeHtml(p.name)}</span>
-                        ${isCurrent ? '<span class="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-bold uppercase">Aktiv</span>' : ''}
-                    </div>
-                    <div class="flex items-center gap-1 shrink-0">
-                        <button data-edit-profile="${p.id}" class="text-slate-400 hover:text-white p-1 text-xs">✏️</button>
-                        ${profiles.length > 1 ? `<button data-delete-profile="${p.id}" class="text-slate-400 hover:text-rose-400 p-1 text-xs">🗑️</button>` : ''}
-                    </div>
-                `;
-                div.querySelector('[data-switch-profile]').onclick = () => switchActiveProfile(p.id);
-                div.querySelector('[data-edit-profile]').onclick = () => editProfile(p.id);
-                const delBtn = div.querySelector('[data-delete-profile]');
-                if (delBtn) delBtn.onclick = () => deleteProfile(p.id);
-                DOM.profilesList.appendChild(div);
-            });
-        }
-
-        function switchActiveProfile(profileId) {
-            activeProfileId = profileId;
-            localStorage.setItem('tf_active_profile_id', profileId);
-            updateHeaderProfileUI();
-            renderProfilesList();
-            renderGrid();
-            renderConsole();
-            showToast("Profil gewechselt!");
-        }
-
-        function editProfile(profileId) {
-            const profiles = getStoredProfiles();
-            const target = profiles.find(p => p.id === profileId);
-            if (!target) return;
-            DOM.editingProfileId.value = target.id;
-            DOM.profileName.value = target.name;
-            selectedColor = target.color;
-            DOM.profileFormTitle.innerText = "Profil bearbeiten";
-            DOM.btnCancelProfileEdit.classList.remove('hidden');
-            initColorPicker();
-        }
-
-        async function deleteProfile(profileId) {
-            let profiles = getStoredProfiles();
-            if (profiles.length <= 1) return;
-            profiles = profiles.filter(p => p.id !== profileId);
-            saveStoredProfiles(profiles);
-            if (activeProfileId === profileId) {
-                activeProfileId = profiles[0].id;
-                localStorage.setItem('tf_active_profile_id', activeProfileId);
-            }
-            if (firebaseReady) {
-                try { await updateDoc(getRoomRef(), { [`users.${profileId}`]: deleteField() }); } catch(e){}
-            }
-            updateHeaderProfileUI();
-            renderProfilesList();
-            renderGrid();
-            renderConsole();
-            showToast("Profil gelöscht");
-        }
-
-        function updateHeaderProfileUI() {
-            const active = getActiveProfile();
-            DOM.headerUserName.innerText = active.name;
-            DOM.headerUserColor.style.backgroundColor = active.color;
-            syncActiveProfileToRoom();
-        }
-
-        function resetProfileForm() {
-            DOM.editingProfileId.value = '';
-            DOM.profileName.value = '';
-            DOM.profileFormTitle.innerText = "Neues Profil anlegen";
-            DOM.btnCancelProfileEdit.classList.add('hidden');
-            selectedColor = PALETTE[0].hex;
-            initColorPicker();
-        }
-
-        DOM.btnSaveProfile.onclick = async () => {
-            const name = DOM.profileName.value.trim();
-            if (!name) { showToast("Name eingeben"); return; }
-            let profiles = getStoredProfiles();
-            const editId = DOM.editingProfileId.value;
-            if (editId) {
-                profiles = profiles.map(p => p.id === editId ? { ...p, name, color: selectedColor } : p);
-                const updated = profiles.find(p => p.id === editId);
-                if (updated) await saveUserToRoom(updated);
-            } else {
-                const newProf = { id: 'prof-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7), name, color: selectedColor };
-                profiles.push(newProf);
-                activeProfileId = newProf.id;
-                localStorage.setItem('tf_active_profile_id', activeProfileId);
-                await saveUserToRoom(newProf);
-            }
-            saveStoredProfiles(profiles);
-            updateHeaderProfileUI();
-            resetProfileForm();
-            renderProfilesList();
-            renderGrid();
-            renderConsole();
-            showToast("Profil gespeichert!");
-        };
-
-        document.getElementById('btn-manage-profiles').onclick = () => { resetProfileForm(); renderProfilesList(); DOM.profileModal.classList.remove('hidden'); };
-        document.getElementById('btn-close-profile-modal').onclick = () => DOM.profileModal.classList.add('hidden');
-        DOM.btnCancelProfileEdit.onclick = () => resetProfileForm();
-
-        document.getElementById('btn-open-tutorial').onclick = () => DOM.tutorialModal.classList.remove('hidden');
-        document.getElementById('btn-close-tutorial').onclick = () => DOM.tutorialModal.classList.add('hidden');
-        document.getElementById('btn-tutorial-ok').onclick = () => DOM.tutorialModal.classList.add('hidden');
-
-        const toggleInput = document.getElementById('toggle-overlay');
-        const toggleBg = document.getElementById('toggle-bg');
-        const toggleDot = document.getElementById('toggle-dot');
-        toggleInput.checked = showOverlay;
-
-        function updateToggleUI() {
-            if (showOverlay) {
-                toggleBg.classList.replace('bg-slate-800', 'bg-emerald-600');
-                toggleDot.classList.add('translate-x-3.5');
-            } else {
-                toggleBg.classList.replace('bg-emerald-600', 'bg-slate-800');
-                toggleDot.classList.remove('translate-x-3.5');
-            }
-        }
-        updateToggleUI();
-        toggleInput.addEventListener('change', e => { showOverlay = e.target.checked; updateToggleUI(); renderGrid(); });
-
-        document.getElementById('btn-toggle-console').onclick = () => {
-            isConsoleOpen = !isConsoleOpen;
-            if (isConsoleOpen) {
-                DOM.consoleDrawer.classList.remove('translate-y-full');
-                document.getElementById('console-icon').innerText = '▼';
-            } else {
-                DOM.consoleDrawer.classList.add('translate-y-full');
-                document.getElementById('console-icon').innerText = '▲';
-            }
-        };
-
-        document.getElementById('btn-new-event').onclick = () => openEventModal();
-        document.getElementById('btn-empty-create').onclick = () => openEventModal();
-        document.getElementById('btn-close-event-modal').onclick = () => DOM.eventModal.classList.add('hidden');
-        document.getElementById('btn-cancel-event').onclick = () => DOM.eventModal.classList.add('hidden');
-        DOM.btnEditCurrentEvent.onclick = () => { if (currentEventId && roomData.events?.[currentEventId]) openEventModal(currentEventId); };
-
-        function openEventModal(eventIdToEdit = null) {
-            if (eventIdToEdit) {
-                const ev = roomData.events[eventIdToEdit];
-                if (!ev) return;
-                document.getElementById('editing-event-id').value = eventIdToEdit;
-                document.getElementById('event-modal-title').innerText = "Event bearbeiten";
-                document.getElementById('event-modal-subtitle').innerText = "Zeitraum anpassen.";
-                document.getElementById('event-name').value = ev.name;
-                document.getElementById('event-start').value = ev.start;
-                document.getElementById('event-end').value = ev.end;
-                document.getElementById('btn-delete-event').classList.remove('hidden');
-            } else {
-                document.getElementById('editing-event-id').value = '';
-                document.getElementById('event-modal-title').innerText = "Neues Event anlegen";
-                document.getElementById('event-modal-subtitle').innerText = "Name und Zeitraum bestimmen.";
-                document.getElementById('event-name').value = '';
-                const today = new Date();
-                const future = new Date(); future.setDate(today.getDate() + 3);
-                document.getElementById('event-start').value = toLocalISODate(today);
-                document.getElementById('event-end').value = toLocalISODate(future);
-                document.getElementById('btn-delete-event').classList.add('hidden');
-            }
-            DOM.eventModal.classList.remove('hidden');
-        }
-
-        document.getElementById('btn-save-event').onclick = async () => {
-            const name = document.getElementById('event-name').value.trim();
-            const start = document.getElementById('event-start').value;
-            const end = document.getElementById('event-end').value;
-            const editId = document.getElementById('editing-event-id').value;
-            if (!name || !start || !end) { showToast("Alle Felder ausfüllen"); return; }
-            if (new Date(start) > new Date(end)) { showToast("Start nach Ende"); return; }
-
-            const eventId = editId || ('evt-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7));
-            const eventData = { name, start, end };
-            if (!roomData.events) roomData.events = {};
-            roomData.events[eventId] = eventData;
-            currentEventId = eventId;
-            await saveEventToRoom(eventId, eventData);
-            DOM.eventModal.classList.add('hidden');
-            renderEvents();
-            renderGrid();
-            renderConsole();
-            showToast(editId ? "Event aktualisiert!" : "Event erstellt!");
-        };
-
-        document.getElementById('btn-delete-event').onclick = async () => {
-            const editId = document.getElementById('editing-event-id').value;
-            if (!editId || !roomData.events[editId]) return;
-            delete roomData.events[editId];
-            if (roomData.availability?.[editId]) delete roomData.availability[editId];
-            await deleteEventFromRoom(editId);
-            currentEventId = null;
-            DOM.eventModal.classList.add('hidden');
-            renderEvents();
-            renderGrid();
-            renderConsole();
-            showToast("Event gelöscht.");
-        };
-
-        function renderEvents() {
-            DOM.eventTabs.innerHTML = '';
-            const eventKeys = Object.keys(roomData.events || {});
-            if (eventKeys.length === 0) {
-                currentEventId = null;
-                DOM.btnEditCurrentEvent.classList.add('hidden');
-                return;
-            }
-            eventKeys.sort((a, b) => new Date(roomData.events[a].start) - new Date(roomData.events[b].start));
-            if (!currentEventId || !roomData.events[currentEventId]) currentEventId = eventKeys[0];
-            DOM.btnEditCurrentEvent.classList.remove('hidden');
-
-            eventKeys.forEach(eId => {
-                const ev = roomData.events[eId];
-                const btn = document.createElement('button');
-                const isSelected = currentEventId === eId;
-                btn.className = `px-3 py-1 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 ${isSelected ? 'bg-emerald-600 text-slate-950 font-bold shadow-md shadow-emerald-600/20 border border-emerald-500' : 'bg-slate-950 text-slate-400 hover:bg-slate-800 hover:text-white border border-slate-800'}`;
-                btn.innerHTML = `<span>📋 ${escapeHtml(ev.name)}</span>`;
-                btn.onclick = () => { currentEventId = eId; renderEvents(); renderGrid(); renderConsole(); };
-                DOM.eventTabs.appendChild(btn);
-            });
-        }
-
-        function toLocalISODate(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        function getDates(startStr, endStr) {
-            const dates = [];
-            if (!startStr || !endStr) return dates;
-            let current = new Date(startStr + 'T00:00:00');
-            const end = new Date(endStr + 'T00:00:00');
-            let count = 0;
-            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            while (current <= end && count < 31) {
-                const dayStr = current.toLocaleDateString('de-DE', { weekday: 'short' });
-                const dateStr = current.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
-                const iso = toLocalISODate(current);
-                const colLetter = alphabet[count % 26];
-                dates.push({ colLetter, label: `${dayStr}<br><span class="text-[10px] text-slate-400 font-normal">${dateStr}</span>`, iso, fullDateStr: `${dayStr}, ${dateStr}` });
-                current.setDate(current.getDate() + 1);
-                count++;
-            }
-            return dates;
-        }
-
-        function getMySlots() {
-            if (!currentEventId) return [];
-            const active = getActiveProfile();
-            return roomData.availability?.[currentEventId]?.[active.id] || [];
-        }
-
-        function renderGrid() {
-            if (!currentEventId || !roomData.events?.[currentEventId]) {
-                DOM.gridEmptyState.classList.remove('hidden');
-                DOM.gridContainerWrapper.classList.add('hidden');
-                DOM.consoleEventName.innerText = '...';
-                return;
-            }
-            DOM.gridEmptyState.classList.add('hidden');
-            DOM.gridContainerWrapper.classList.remove('hidden');
-
-            const ev = roomData.events[currentEventId];
-            DOM.consoleEventName.innerText = ev.name;
-            const days = getDates(ev.start, ev.end);
-            const hours = Array.from({ length: 24 }, (_, i) => i);
-            const activeProfile = getActiveProfile();
-            const mySlots = getMySlots();
-            const allUserIds = Object.keys(roomData.users || {});
-            const totalUsers = allUserIds.length || 1;
-            const colsStyle = `65px repeat(${days.length}, minmax(80px, 1fr))`;
-
-            DOM.calendarHeader.style.gridTemplateColumns = colsStyle;
-            DOM.calendarHeader.innerHTML = '<div class="py-2.5 border-r border-slate-800 text-slate-400 font-mono text-[11px] bg-slate-950 flex items-center justify-center font-bold">Zeit</div>' +
-                days.map(d => `<div class="py-2 px-1 bg-slate-900/90 border-r border-slate-800 font-mono text-xs text-slate-300"><span class="text-emerald-400 font-bold text-[10px] block">${d.colLetter}</span>${d.label}</div>`).join('');
-
-            DOM.calendarBody.innerHTML = '';
-            document.body.onmouseup = () => isDragging = false;
-
-            hours.forEach((hour, rowIndex) => {
-                const row = document.createElement('div');
-                row.className = "grid excel-row";
-                row.style.gridTemplateColumns = colsStyle;
-
-                const timeCell = document.createElement('div');
-                timeCell.className = "py-2 border-r border-b border-slate-800 text-slate-400 font-mono text-[11px] flex items-center justify-between px-2 bg-slate-900 select-none font-semibold";
-                timeCell.innerHTML = `<span class="text-slate-600 text-[9px]">${rowIndex + 1}</span><span>${hour < 10 ? '0' + hour : hour}:00</span>`;
-                row.appendChild(timeCell);
-
-                days.forEach(day => {
-                    const slotId = `${day.iso}_${hour}`;
-                    const isSelectedByMe = mySlots.includes(slotId);
-                    let availableUsersCount = 0;
-
-                    allUserIds.forEach(uid => {
-                        const userAvail = roomData.availability?.[currentEventId]?.[uid] || [];
-                        if (userAvail.includes(slotId)) availableUsersCount++;
-                    });
-
-                    const overlapRatio = totalUsers > 0 ? availableUsersCount / totalUsers : 0;
-                    const cell = document.createElement('div');
-                    cell.className = "excel-cell h-11 cursor-pointer overflow-hidden flex items-center justify-center font-mono text-[11px]";
-                    cell.dataset.slot = slotId;
-
-                    if (showOverlay && availableUsersCount > 0) {
-                        if (overlapRatio === 1) {
-                            cell.className += " perfect-match-glow bg-emerald-500/90 text-slate-950 font-bold";
-                            cell.innerHTML = `<span>★ ${availableUsersCount}/${totalUsers}</span>`;
-                        } else if (overlapRatio >= 0.6) {
-                            cell.style.backgroundColor = "rgba(16, 185, 129, 0.45)";
-                            cell.style.color = "#a7f3d0";
-                            cell.innerHTML = `<span>${availableUsersCount}/${totalUsers}</span>`;
-                        } else if (overlapRatio >= 0.3) {
-                            cell.style.backgroundColor = "rgba(234, 179, 8, 0.25)";
-                            cell.style.color = "#fef08a";
-                            cell.innerHTML = `<span>${availableUsersCount}/${totalUsers}</span>`;
-                        } else {
-                            cell.style.backgroundColor = "rgba(51, 65, 85, 0.3)";
-                            cell.style.color = "#94a3b8";
-                            cell.innerHTML = `<span>${availableUsersCount}/${totalUsers}</span>`;
-                        }
-                    } else if (isSelectedByMe) {
-                        cell.style.backgroundColor = activeProfile.color;
-                        cell.style.color = "#000";
-                    } else {
-                        cell.style.backgroundColor = "rgba(11, 15, 25, 0.8)";
-                    }
-
-                    cell.onmouseenter = () => { if (isDragging) handleInteraction(dragSelectMode); };
-
-                    const handleInteraction = async (forceToggle = null) => {
-                        let currentSlots = getMySlots();
-                        const currentlySelected = currentSlots.includes(slotId);
-                        const shouldSelect = forceToggle !== null ? forceToggle : !currentlySelected;
-
-                        if (shouldSelect && !currentlySelected) currentSlots = [...currentSlots, slotId];
-                        else if (!shouldSelect && currentlySelected) currentSlots = currentSlots.filter(s => s !== slotId);
-
-                        if (!roomData.availability) roomData.availability = {};
-                        if (!roomData.availability[currentEventId]) roomData.availability[currentEventId] = {};
-                        roomData.availability[currentEventId][activeProfile.id] = currentSlots;
-
-                        await saveAvailability(currentEventId, activeProfile.id, currentSlots);
-                        renderGrid();
-                        renderConsole();
-                    };
-
-                    cell.onmousedown = e => {
-                        e.preventDefault();
-                        isDragging = true;
-                        dragSelectMode = !mySlots.includes(slotId);
-                        handleInteraction(dragSelectMode);
-                    };
-
-                    row.appendChild(cell);
-                });
-                calendarBody.appendChild(row);
-            });
-        }
-
-        function renderConsole() {
-            DOM.consoleResults.innerHTML = '';
-            if (!currentEventId) return;
-            const ev = roomData.events[currentEventId];
-            if (!ev) return;
-            const days = getDates(ev.start, ev.end);
-            const allUserIds = Object.keys(roomData.users || {});
-            const totalUsers = allUserIds.length;
-            if (totalUsers === 0) {
-                DOM.consoleResults.innerHTML = '<p class="text-slate-500 italic col-span-full text-xs">Noch keine Teilnehmer.</p>';
-                return;
-            }
-
-            const slotScores = [];
-            days.forEach(day => {
-                for (let h = 0; h < 24; h++) {
-                    const slotId = `${day.iso}_${h}`;
-                    let count = 0, users = [];
-                    allUserIds.forEach(uid => {
-                        const userAvail = roomData.availability?.[currentEventId]?.[uid] || [];
-                        if (userAvail.includes(slotId)) {
-                            count++;
-                            if (roomData.users[uid]?.name) users.push(roomData.users[uid].name);
-                        }
-                    });
-                    if (count > 0) slotScores.push({ slotId, dayLabel: day.fullDateStr, hour: h, count, users, ratio: count / totalUsers });
-                }
-            });
-
-            slotScores.sort((a, b) => b.count !== a.count ? b.count - a.count : a.hour - b.hour);
-            const top3 = slotScores.slice(0, 6);
-            if (top3.length === 0) {
-                DOM.consoleResults.innerHTML = '<p class="text-slate-500 italic col-span-full text-xs">Noch keine Zeiten markiert.</p>';
-                return;
-            }
-
-            top3.forEach(item => {
-                const isPerfect = item.ratio === 1;
-                const card = document.createElement('div');
-                card.className = `p-3 rounded-xl border flex flex-col justify-between ${isPerfect ? 'bg-emerald-950/60 border-emerald-500/80 shadow-lg' : 'bg-slate-950 border-slate-800'}`;
-                card.innerHTML = `
-                    <div class="flex items-center justify-between mb-1.5">
-                        <span class="text-xs font-bold text-white">${escapeHtml(item.dayLabel)}</span>
-                        <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded ${isPerfect ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'}">${item.hour}:00 - ${item.hour + 1}:00</span>
-                    </div>
-                    <div class="text-xs text-slate-300 mt-1 flex items-center justify-between">
-                        <span>Verfügbar: <b class="${isPerfect ? 'text-emerald-400 font-extrabold' : 'text-white'}">${item.count} von ${totalUsers}</b></span>
-                        <span class="text-[11px] font-mono text-slate-400">${Math.round(item.ratio * 100)}%</span>
-                    </div>
-                    <div class="text-[11px] text-slate-400 mt-1 truncate">Teilnehmer: ${item.users.map(escapeHtml).join(', ')}</div>
-                `;
-                DOM.consoleResults.appendChild(card);
-            });
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.classList.remove('opacity-0');
-            setTimeout(() => toast.classList.add('opacity-0'), 2500);
-        }
-
-        document.getElementById('btn-copy-link').onclick = async () => {
-            try {
-                await navigator.clipboard.writeText(window.location.href);
-                showToast("Link in Zwischenablage kopiert!");
-            } catch (e) {
-                showToast("Link kopieren fehlgeschlagen");
-            }
-        };
-
-        function escapeHtml(value) {
-            const div = document.createElement('div');
-            div.textContent = value == null ? '' : String(value);
-            return div.innerHTML;
-        }
-
-        initColorPicker();
-        startFirebaseSync();
-        getActiveProfile();
-        updateHeaderProfileUI();
-        renderEvents();
-        renderGrid();
-        renderConsole();
-
-        window.addEventListener('beforeunload', () => { if (firebaseUnsubscribe) firebaseUnsubscribe(); });
-    </script>
+    best.sort((a, b) => b.users.length - a.users.length);  // stabil → bei Gleichstand chronologisch
+    if (!best.length) return empty('Noch keine Zeitfenster markiert.');
+
+    $('console-results').innerHTML = best.slice(0, 6).map(s => {
+        const p = s.r === 1;
+        return `<div class="p-3 rounded-xl border ${p ? 'bg-emerald-950/60 border-emerald-500/80' : 'bg-slate-950 border-slate-800'}">
+            <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs font-bold text-white">${esc(s.label)}</span>
+                <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded ${p ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'}">${s.h}:00 - ${s.h + 1}:00 Uhr</span>
+            </div>
+            <div class="text-xs text-slate-300 flex justify-between">
+                <span>Verfügbar: <b class="${p ? 'text-emerald-400' : 'text-white'}">${s.users.length} von ${total} Personen</b></span>
+                <span class="text-[11px] font-mono text-slate-400">${Math.round(s.r * 100)}%</span>
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1 truncate">Teilnehmer: ${s.users.map(esc).join(', ')}</div>
+        </div>`;
+    }).join('');
+}
+
+function renderAll() {
+    renderHeader();
+    renderEvents();
+    renderGrid();
+    renderConsole();
+    if (!$('modal-profile').classList.contains('hidden')) renderProfiles();
+}
+
+/* ---------- Sonstiges ---------- */
+$('btn-toggle-console').onclick = () => {
+    const open = $('console-drawer').classList.toggle('translate-y-full') === false;
+    $('console-icon').innerText = open ? '▼' : '▲';
+};
+
+$('tutorial-steps').innerHTML = [
+    ['emerald', 'Raum-Link teilen', 'Alle, die denselben Link öffnen, arbeiten im selben Raum – auch du selbst auf Handy und PC.'],
+    ['indigo', 'Profil wählen', 'Profile gehören zum Raum. Wähle auf jedem Gerät einmal aus, wer du bist.'],
+    ['amber', 'Zeiten markieren', 'Am PC klicken & ziehen, am Handy antippen. Die Heatmap zeigt die besten Überschneidungen.'],
+    ['blue', 'Live-Sync', 'Alle Änderungen landen sofort über Firebase auf allen geöffneten Geräten.']
+].map(([c, t, d], i) => `<div class="flex gap-3 items-start bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+    <div class="w-6 h-6 rounded-full bg-${c}-500/20 text-${c}-400 flex items-center justify-center font-bold text-xs shrink-0">${i + 1}</div>
+    <div><p class="font-semibold text-white">${t}</p><p class="text-xs text-slate-400 mt-0.5">${d}</p></div></div>`).join('');
+$('btn-open-tutorial').onclick = () => openModal('modal-tutorial');
+
+$('btn-copy-link').onclick = async () => {
+    try { await navigator.clipboard.writeText(location.href); toast('Link in die Zwischenablage kopiert!'); }
+    catch { prompt('Link kopieren:', location.href); }
+};
+
+renderColorPicker();
+renderAll();
+</script>
 </body>
 </html>
