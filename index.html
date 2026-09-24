@@ -430,7 +430,6 @@ function renderGrid() {
 
     const days = getDays(ev.start, ev.end);
     const map = slotMap(), mine = new Set(mySlots()), u = me();
-    const total = Object.keys(room.users).length || 1;
     const overlay = $('toggle-overlay').checked;
     const cols = `65px repeat(${days.length}, minmax(80px, 1fr))`;
 
@@ -448,9 +447,9 @@ function renderGrid() {
             const slot = `${d.iso}_${h}`, names = map[slot] || [], n = names.length, isMine = mine.has(slot);
             let cls = '', style = 'background:rgba(11,15,25,.8)', txt = '';
             if (overlay && n) {
-                const r = n / total;
-                txt = `${r === 1 ? '★ ' : ''}${n}/${total}`;
-                if (r === 1) { cls = 'perfect-match-glow bg-emerald-500/90 text-slate-950 font-bold'; style = ''; }
+                const r = n / 5;
+                txt = `${r >= 1 ? '★ ' : ''}${n}/5`;
+                if (r >= 1) { cls = 'perfect-match-glow bg-emerald-500/90 text-slate-950 font-bold'; style = ''; }
                 else style = r >= .6 ? 'background:rgba(16,185,129,.45);color:#a7f3d0'
                           : r >= .3 ? 'background:rgba(234,179,8,.25);color:#fef08a'
                           : 'background:rgba(51,65,85,.3);color:#94a3b8';
