@@ -3,48 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Terminfinder</title>
+  <title>Terminfinder Kalender</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .cell-selected { background-color: #10b981 !important; color: white; }
+  </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen p-6 flex flex-col items-center">
+<body class="bg-slate-900 text-white min-h-screen p-4 flex flex-col items-center">
 
-  <div class="max-w-2xl w-full bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
-    <h1 class="text-2xl font-bold mb-2 text-indigo-400">📅 Terminfinder</h1>
-    <p class="text-sm text-slate-400 mb-6">Teile die URL mit deinen Freunden – alle tragen sich ohne Anmelden ein!</p>
+  <div class="max-w-5xl w-full bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
+    <h1 class="text-2xl font-bold mb-1 text-indigo-400">📅 Terminfinder Kalender</h1>
+    <p class="text-xs text-slate-400 mb-4">Trage deinen Namen ein und klicke auf die Stunden, in denen du Zeit hast.</p>
 
-    <!-- Namenseingabe -->
-    <div class="mb-6">
-      <label class="block text-sm font-medium mb-1">Dein Name:</label>
-      <input id="username" type="text" placeholder="z. B. Alex" class="w-full p-2 bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:border-indigo-500">
+    <!-- Name & Link -->
+    <div class="flex flex-col sm:flex-row gap-3 mb-6">
+      <input id="username" type="text" placeholder="Dein Name (z. B. Alex)" class="flex-1 p-2 bg-slate-700 border border-slate-600 rounded text-white text-sm focus:outline-none focus:border-indigo-500">
+      <button onclick="copyLink()" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded text-sm text-white font-medium transition"> Link kopieren</button>
     </div>
 
-    <!-- Raum-Link -->
-    <div class="mb-6 p-3 bg-slate-900 rounded flex justify-between items-center text-xs">
-      <span id="room-link" class="truncate text-slate-400">Wird geladen...</span>
-      <button onclick="copyLink()" class="ml-2 bg-indigo-600 hover:bg-indigo-500 px-3 py-1 rounded text-white">Link kopieren</button>
+    <!-- Kalender Raster -->
+    <div class="overflow-x-auto mb-6">
+      <div class="min-w-[600px]">
+        <!-- Header (Wochentage) -->
+        <div class="grid grid-cols-8 gap-1 mb-1 text-center font-bold text-xs text-indigo-300">
+          <div class="py-2">Zeit</div>
+          <div class="py-2">Mo</div>
+          <div class="py-2">Di</div>
+          <div class="py-2">Mi</div>
+          <div class="py-2">Do</div>
+          <div class="py-2">Fr</div>
+          <div class="py-2">Sa</div>
+          <div class="py-2">So</div>
+        </div>
+
+        <!-- Stunden Zeilen (8:00 - 22:00) -->
+        <div id="calendar-grid" class="space-y-1"></div>
+      </div>
     </div>
 
-    <!-- Zeiten Raster -->
-    <h2 class="text-lg font-semibold mb-3">Wähle deine freien Zeiten (Freitag - Sonntag):</h2>
-    <div id="grid" class="grid grid-cols-3 gap-2 mb-6">
-      <!-- Grid items via JS -->
-    </div>
-
-    <!-- Live Status -->
+    <!-- Übersicht wer wann kann -->
     <div class="border-t border-slate-700 pt-4">
-      <h3 class="font-semibold text-sm mb-2 text-indigo-300">Eingetragene Personen & Zeiten:</h3>
-      <div id="results" class="text-sm space-y-1 text-slate-300">
+      <h3 class="font-semibold text-sm mb-2 text-indigo-300">Teilnehmer & Freie Zeiten:</h3>
+      <div id="results" class="text-xs space-y-1 text-slate-300 max-h-40 overflow-y-auto">
         Warte auf Daten...
       </div>
     </div>
   </div>
 
-  <!-- Firebase Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // *** DEINE FIREBASE CONFIG HIER EINFÜGEN ***
+    // ⚠️ DEINE FIREBASE CONFIG HIER EINFÜGEN ⚠️
     const firebaseConfig = {
       apiKey: "AIzaSyAwL4VAhz83s3hn5qmNGv295ir2hSB6xL0",
       projectId: "meettime-d9ad6",
@@ -53,21 +63,18 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Raum-ID aus URL lesen oder erstellen
     let roomId = window.location.hash.replace('#room=', '');
     if (!roomId) {
       roomId = 'room-' + Math.random().toString(36).substring(2, 8);
       window.location.hash = `room=${roomId}`;
     }
-    
-    document.getElementById('room-link').innerText = window.location.href;
 
     const roomRef = doc(db, "rooms", roomId);
-    const timeslots = ["Fr 18:00", "Fr 20:00", "Sa 14:00", "Sa 18:00", "Sa 20:00", "So 15:00", "So 18:00"];
+    const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+    const hours = Array.from({length: 15}, (_, i) => i + 8); // 8:00 bis 22:00 Uhr
     let mySelectedSlots = new Set();
     let roomData = {};
 
-    // Name speichern/laden
     const nameInput = document.getElementById('username');
     nameInput.value = localStorage.getItem('user_name') || '';
     nameInput.addEventListener('input', (e) => {
@@ -75,28 +82,41 @@
       saveData();
     });
 
-    // Grid aufbauen
-    const gridEl = document.getElementById('grid');
-    timeslots.forEach(slot => {
-      const btn = document.createElement('button');
-      btn.innerText = slot;
-      btn.className = "p-3 bg-slate-700 hover:bg-slate-600 rounded text-center text-sm border border-slate-600 transition";
-      btn.onclick = () => {
-        if (mySelectedSlots.has(slot)) {
-          mySelectedSlots.delete(slot);
-          btn.classList.remove('bg-emerald-600', 'border-emerald-400');
-          btn.classList.add('bg-slate-700');
-        } else {
-          mySelectedSlots.add(slot);
-          btn.classList.remove('bg-slate-700');
-          btn.classList.add('bg-emerald-600', 'border-emerald-400');
-        }
-        saveData();
-      };
-      gridEl.appendChild(btn);
+    // Kalender-Raster generieren
+    const gridEl = document.getElementById('calendar-grid');
+    hours.forEach(hour => {
+      const row = document.createElement('div');
+      row.className = "grid grid-cols-8 gap-1 text-xs text-center";
+
+      // Zeit-Spalte
+      const timeCell = document.createElement('div');
+      timeCell.className = "p-2 bg-slate-800 text-slate-400 font-mono text-[10px] flex items-center justify-center";
+      timeCell.innerText = `${hour}:00`;
+      row.appendChild(timeCell);
+
+      // Tage-Spalten
+      days.forEach(day => {
+        const slotId = `${day}-${hour}`;
+        const cell = document.createElement('button');
+        cell.id = `cell-${slotId}`;
+        cell.className = "p-2 bg-slate-700/60 hover:bg-slate-600 rounded border border-slate-700 transition h-8";
+        
+        cell.onclick = () => {
+          if (mySelectedSlots.has(slotId)) {
+            mySelectedSlots.delete(slotId);
+            cell.classList.remove('cell-selected');
+          } else {
+            mySelectedSlots.add(slotId);
+            cell.classList.add('cell-selected');
+          }
+          saveData();
+        };
+        row.appendChild(cell);
+      });
+
+      gridEl.appendChild(row);
     });
 
-    // Daten in Firebase speichern
     async function saveData() {
       const name = nameInput.value.trim();
       if (!name) return;
@@ -106,7 +126,6 @@
       }, { merge: true });
     }
 
-    // In Echtzeit auf Änderungen hören
     onSnapshot(roomRef, (snapshot) => {
       if (snapshot.exists()) {
         roomData = snapshot.data();
@@ -117,24 +136,25 @@
     function renderResults() {
       const resultsEl = document.getElementById('results');
       resultsEl.innerHTML = '';
-
       const users = Object.keys(roomData);
+
       if (users.length === 0) {
-        resultsEl.innerHTML = '<i>Noch keine Eintragungen.</i>';
+        resultsEl.innerHTML = '<i>Noch keine Eintragungen vorhanden.</i>';
         return;
       }
 
       users.forEach(user => {
-        const slots = roomData[user].join(', ') || 'Keine Zeiten gewählt';
+        const slots = roomData[user] || [];
         const div = document.createElement('div');
-        div.innerHTML = `<b class="text-white">${user}:</b> ${slots}`;
+        div.className = "p-2 bg-slate-700/40 rounded border border-slate-700 mb-1";
+        div.innerHTML = `<b class="text-indigo-300">${user}</b> (${slots.length} Stunden ausgewählt)`;
         resultsEl.appendChild(div);
       });
     }
 
     window.copyLink = () => {
       navigator.clipboard.writeText(window.location.href);
-      alert('Link in die Zwischenablage kopiert!');
+      alert('Link kopiert! Sende ihn an deine Freunde.');
     };
   </script>
 </body>
