@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Terminfinder Kalender</title>
+  <title>Terminfinder Datums-Kalender</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .cell-selected { background-color: #10b981 !important; color: white; }
@@ -11,39 +11,42 @@
 </head>
 <body class="bg-slate-900 text-white min-h-screen p-4 flex flex-col items-center">
 
-  <div class="max-w-5xl w-full bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
-    <h1 class="text-2xl font-bold mb-1 text-indigo-400">📅 Terminfinder Kalender</h1>
-    <p class="text-xs text-slate-400 mb-4">Trage deinen Namen ein und klicke auf die Stunden, in denen du Zeit hast.</p>
+  <div class="max-w-6xl w-full bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
+    <h1 class="text-2xl font-bold mb-1 text-indigo-400">📅 Datums-Terminfinder</h1>
+    <p class="text-xs text-slate-400 mb-4">Lege den Zeitraum fest, trage deinen Namen ein und wähle deine freien Stunden.</p>
 
-    <!-- Name & Link -->
-    <div class="flex flex-col sm:flex-row gap-3 mb-6">
-      <input id="username" type="text" placeholder="Dein Name (z. B. Alex)" class="flex-1 p-2 bg-slate-700 border border-slate-600 rounded text-white text-sm focus:outline-none focus:border-indigo-500">
-      <button onclick="copyLink()" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded text-sm text-white font-medium transition"> Link kopieren</button>
+    <!-- Zeitraum & Name Controls -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6 p-4 bg-slate-900/60 rounded-lg border border-slate-700/60 text-xs">
+      <div>
+        <label class="block font-medium mb-1 text-slate-300">Dein Name:</label>
+        <input id="username" type="text" placeholder="z. B. Alex" class="w-full p-2 bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:border-indigo-500">
+      </div>
+      <div>
+        <label class="block font-medium mb-1 text-slate-300">Startdatum:</label>
+        <input id="start-date" type="date" class="w-full p-2 bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:border-indigo-500">
+      </div>
+      <div>
+        <label class="block font-medium mb-1 text-slate-300">Enddatum:</label>
+        <input id="end-date" type="date" class="w-full p-2 bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:border-indigo-500">
+      </div>
+      <div class="flex items-end">
+        <button onclick="copyLink()" class="w-full bg-indigo-600 hover:bg-indigo-500 p-2 rounded text-white font-medium transition">Link kopieren</button>
+      </div>
     </div>
 
-    <!-- Kalender Raster -->
+    <!-- Kalender Raster (Scrollbar wenn viele Tage) -->
     <div class="overflow-x-auto mb-6">
-      <div class="min-w-[600px]">
-        <!-- Header (Wochentage) -->
-        <div class="grid grid-cols-8 gap-1 mb-1 text-center font-bold text-xs text-indigo-300">
-          <div class="py-2">Zeit</div>
-          <div class="py-2">Mo</div>
-          <div class="py-2">Di</div>
-          <div class="py-2">Mi</div>
-          <div class="py-2">Do</div>
-          <div class="py-2">Fr</div>
-          <div class="py-2">Sa</div>
-          <div class="py-2">So</div>
-        </div>
-
-        <!-- Stunden Zeilen (8:00 - 22:00) -->
+      <div id="calendar-container" class="min-w-max">
+        <!-- Header (Tage) -->
+        <div id="calendar-header" class="grid gap-1 mb-1 text-center font-bold text-xs text-indigo-300"></div>
+        <!-- Stunden Zeilen -->
         <div id="calendar-grid" class="space-y-1"></div>
       </div>
     </div>
 
-    <!-- Übersicht wer wann kann -->
+    <!-- Live Auswertung -->
     <div class="border-t border-slate-700 pt-4">
-      <h3 class="font-semibold text-sm mb-2 text-indigo-300">Teilnehmer & Freie Zeiten:</h3>
+      <h3 class="font-semibold text-sm mb-2 text-indigo-300">Eingetragene Personen:</h3>
       <div id="results" class="text-xs space-y-1 text-slate-300 max-h-40 overflow-y-auto">
         Warte auf Daten...
       </div>
@@ -70,65 +73,123 @@
     }
 
     const roomRef = doc(db, "rooms", roomId);
-    const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-    const hours = Array.from({length: 15}, (_, i) => i + 8); // 8:00 bis 22:00 Uhr
+    const hours = Array.from({length: 15}, (_, i) => i + 8); // 8:00 - 22:00 Uhr
     let mySelectedSlots = new Set();
     let roomData = {};
+    let activeDays = [];
 
+    // Standard-Datumsbereich setzen (Heute bis +13 Tage)
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
     const nameInput = document.getElementById('username');
+
+    const today = new Date();
+    const future = new Date();
+    future.setDate(today.getDate() + 13);
+
+    startDateInput.value = today.toISOString().split('T')[0];
+    endDateInput.value = future.toISOString().split('T')[0];
     nameInput.value = localStorage.getItem('user_name') || '';
+
+    // Events für Intervall-Änderungen
+    startDateInput.addEventListener('change', updateRange);
+    endDateInput.addEventListener('change', updateRange);
     nameInput.addEventListener('input', (e) => {
       localStorage.setItem('user_name', e.target.value);
       saveData();
     });
 
-    // Kalender-Raster generieren
-    const gridEl = document.getElementById('calendar-grid');
-    hours.forEach(hour => {
-      const row = document.createElement('div');
-      row.className = "grid grid-cols-8 gap-1 text-xs text-center";
+    function getDatesInRange(startStr, endStr) {
+      const dates = [];
+      let current = new Date(startStr);
+      const end = new Date(endStr);
+      while (current <= end) {
+        const dayName = current.toLocaleDateString('de-DE', { weekday: 'short' });
+        const dateStr = current.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+        const iso = current.toISOString().split('T')[0];
+        dates.push({ label: `${dayName} ${dateStr}`, iso });
+        current.setDate(current.getDate() + 1);
+      }
+      return dates;
+    }
 
-      // Zeit-Spalte
-      const timeCell = document.createElement('div');
-      timeCell.className = "p-2 bg-slate-800 text-slate-400 font-mono text-[10px] flex items-center justify-center";
-      timeCell.innerText = `${hour}:00`;
-      row.appendChild(timeCell);
+    function buildGrid() {
+      activeDays = getDatesInRange(startDateInput.value, endDateInput.value);
+      const headerEl = document.getElementById('calendar-header');
+      const gridEl = document.getElementById('calendar-grid');
 
-      // Tage-Spalten
-      days.forEach(day => {
-        const slotId = `${day}-${hour}`;
-        const cell = document.createElement('button');
-        cell.id = `cell-${slotId}`;
-        cell.className = "p-2 bg-slate-700/60 hover:bg-slate-600 rounded border border-slate-700 transition h-8";
-        
-        cell.onclick = () => {
+      headerEl.style.gridTemplateColumns = `60px repeat(${activeDays.length}, minmax(70px, 1fr))`;
+      headerEl.innerHTML = '<div class="py-2">Zeit</div>' + activeDays.map(d => `<div class="py-2 px-1 bg-slate-800/80 rounded">${d.label}</div>`).join('');
+
+      gridEl.innerHTML = '';
+      hours.forEach(hour => {
+        const row = document.createElement('div');
+        row.className = "grid gap-1 text-xs text-center";
+        row.style.gridTemplateColumns = `60px repeat(${activeDays.length}, minmax(70px, 1fr))`;
+
+        const timeCell = document.createElement('div');
+        timeCell.className = "p-2 bg-slate-800 text-slate-400 font-mono text-[10px] flex items-center justify-center";
+        timeCell.innerText = `${hour}:00`;
+        row.appendChild(timeCell);
+
+        activeDays.forEach(day => {
+          const slotId = `${day.iso}_${hour}`;
+          const cell = document.createElement('button');
+          cell.id = `cell-${slotId}`;
+          cell.className = "p-2 bg-slate-700/60 hover:bg-slate-600 rounded border border-slate-700 transition h-8";
+          
           if (mySelectedSlots.has(slotId)) {
-            mySelectedSlots.delete(slotId);
-            cell.classList.remove('cell-selected');
-          } else {
-            mySelectedSlots.add(slotId);
             cell.classList.add('cell-selected');
           }
-          saveData();
-        };
-        row.appendChild(cell);
-      });
 
-      gridEl.appendChild(row);
-    });
+          cell.onclick = () => {
+            if (mySelectedSlots.has(slotId)) {
+              mySelectedSlots.delete(slotId);
+              cell.classList.remove('cell-selected');
+            } else {
+              mySelectedSlots.add(slotId);
+              cell.classList.add('cell-selected');
+            }
+            saveData();
+          };
+          row.appendChild(cell);
+        });
+
+        gridEl.appendChild(row);
+      });
+    }
+
+    async function updateRange() {
+      buildGrid();
+      await saveData();
+    }
 
     async function saveData() {
       const name = nameInput.value.trim();
       if (!name) return;
 
       await setDoc(roomRef, {
-        [name]: Array.from(mySelectedSlots)
+        config: {
+          start: startDateInput.value,
+          end: endDateInput.value
+        },
+        users: {
+          [name]: Array.from(mySelectedSlots)
+        }
       }, { merge: true });
     }
 
     onSnapshot(roomRef, (snapshot) => {
       if (snapshot.exists()) {
-        roomData = snapshot.data();
+        const data = snapshot.data();
+        if (data.config) {
+          if (data.config.start !== startDateInput.value || data.config.end !== endDateInput.value) {
+            startDateInput.value = data.config.start;
+            endDateInput.value = data.config.end;
+            buildGrid();
+          }
+        }
+        roomData = data.users || {};
         renderResults();
       }
     });
@@ -151,6 +212,8 @@
         resultsEl.appendChild(div);
       });
     }
+
+    buildGrid();
 
     window.copyLink = () => {
       navigator.clipboard.writeText(window.location.href);
