@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terminfinder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen p-6 flex flex-col items-center">
+
+  <div class="max-w-2xl w-full bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
+    <h1 class="text-2xl font-bold mb-2 text-indigo-400">📅 Terminfinder</h1>
+    <p class="text-sm text-slate-400 mb-6">Teile die URL mit deinen Freunden – alle tragen sich ohne Anmelden ein!</p>
+
+    <!-- Namenseingabe -->
+    <div class="mb-6">
+      <label class="block text-sm font-medium mb-1">Dein Name:</label>
+      <input id="username" type="text" placeholder="z. B. Alex" class="w-full p-2 bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:border-indigo-500">
+    </div>
+
+    <!-- Raum-Link -->
+    <div class="mb-6 p-3 bg-slate-900 rounded flex justify-between items-center text-xs">
+      <span id="room-link" class="truncate text-slate-400">Wird geladen...</span>
+      <button onclick="copyLink()" class="ml-2 bg-indigo-600 hover:bg-indigo-500 px-3 py-1 rounded text-white">Link kopieren</button>
+    </div>
+
+    <!-- Zeiten Raster -->
+    <h2 class="text-lg font-semibold mb-3">Wähle deine freien Zeiten (Freitag - Sonntag):</h2>
+    <div id="grid" class="grid grid-cols-3 gap-2 mb-6">
+      <!-- Grid items via JS -->
+    </div>
+
+    <!-- Live Status -->
+    <div class="border-t border-slate-700 pt-4">
+      <h3 class="font-semibold text-sm mb-2 text-indigo-300">Eingetragene Personen & Zeiten:</h3>
+      <div id="results" class="text-sm space-y-1 text-slate-300">
+        Warte auf Daten...
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Scripts -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // *** DEINE FIREBASE CONFIG HIER EINFÜGEN ***
+    const firebaseConfig = {
+      apiKey: "AIzaSyAwL4VAhz83s3hn5qmNGv295ir2hSB6xL0",
+      projectId: "meettime-d9ad6",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Raum-ID aus URL lesen oder erstellen
+    let roomId = window.location.hash.replace('#room=', '');
+    if (!roomId) {
+      roomId = 'room-' + Math.random().toString(36).substring(2, 8);
+      window.location.hash = `room=${roomId}`;
+    }
+    
+    document.getElementById('room-link').innerText = window.location.href;
+
+    const roomRef = doc(db, "rooms", roomId);
+    const timeslots = ["Fr 18:00", "Fr 20:00", "Sa 14:00", "Sa 18:00", "Sa 20:00", "So 15:00", "So 18:00"];
+    let mySelectedSlots = new Set();
+    let roomData = {};
+
+    // Name speichern/laden
+    const nameInput = document.getElementById('username');
+    nameInput.value = localStorage.getItem('user_name') || '';
+    nameInput.addEventListener('input', (e) => {
+      localStorage.setItem('user_name', e.target.value);
+      saveData();
+    });
+
+    // Grid aufbauen
+    const gridEl = document.getElementById('grid');
+    timeslots.forEach(slot => {
+      const btn = document.createElement('button');
+      btn.innerText = slot;
+      btn.className = "p-3 bg-slate-700 hover:bg-slate-600 rounded text-center text-sm border border-slate-600 transition";
+      btn.onclick = () => {
+        if (mySelectedSlots.has(slot)) {
+          mySelectedSlots.delete(slot);
+          btn.classList.remove('bg-emerald-600', 'border-emerald-400');
+          btn.classList.add('bg-slate-700');
+        } else {
+          mySelectedSlots.add(slot);
+          btn.classList.remove('bg-slate-700');
+          btn.classList.add('bg-emerald-600', 'border-emerald-400');
+        }
+        saveData();
+      };
+      gridEl.appendChild(btn);
+    });
+
+    // Daten in Firebase speichern
+    async function saveData() {
+      const name = nameInput.value.trim();
+      if (!name) return;
+
+      await setDoc(roomRef, {
+        [name]: Array.from(mySelectedSlots)
+      }, { merge: true });
+    }
+
+    // In Echtzeit auf Änderungen hören
+    onSnapshot(roomRef, (snapshot) => {
+      if (snapshot.exists()) {
+        roomData = snapshot.data();
+        renderResults();
+      }
+    });
+
+    function renderResults() {
+      const resultsEl = document.getElementById('results');
+      resultsEl.innerHTML = '';
+
+      const users = Object.keys(roomData);
+      if (users.length === 0) {
+        resultsEl.innerHTML = '<i>Noch keine Eintragungen.</i>';
+        return;
+      }
+
+      users.forEach(user => {
+        const slots = roomData[user].join(', ') || 'Keine Zeiten gewählt';
+        const div = document.createElement('div');
+        div.innerHTML = `<b class="text-white">${user}:</b> ${slots}`;
+        resultsEl.appendChild(div);
+      });
+    }
+
+    window.copyLink = () => {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link in die Zwischenablage kopiert!');
+    };
+  </script>
+</body>
+</html>
